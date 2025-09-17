@@ -12,18 +12,18 @@ const StatCard = ({ title, value, icon }: StatCardProps) => {
     <div className="relative rounded-bl-4xl rounded-tr-4xl p-[2px] bg-gradient-to-r min-h-[160px] from-[#0F75BD] to-[#64BB48]">
       <div className="bg-[#575757] rounded-bl-4xl rounded-tr-4xl p-5 flex items-center justify-between h-full text-white">
         <div>
-            <div className="text-lg font-semibold">{title}</div>
-            <div className="text-xl font-bold">{value}</div>
+          <div className="text-lg font-semibold">{title}</div>
+          <div className="text-xl font-bold">{value}</div>
         </div>
         <div className=" w-12 h-12 rounded-full bg-gradient-to-r from-[#0F75BD] to-[#64BB48] flex items-center justify-center">
-            {icon}
+          {icon}
         </div>
       </div>
     </div>
   );
 };
 
-const AdminDashboard = ({children}: {children: React.ReactNode}) => {
+const AdminDashboard = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="w-full h-full p-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
