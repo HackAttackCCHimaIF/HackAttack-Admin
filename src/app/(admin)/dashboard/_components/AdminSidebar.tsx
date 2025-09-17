@@ -46,10 +46,10 @@ export default function AdminSidebar({ isLoggedIn, onSignOut }: SidebarProps) {
         {/* Logo & Navigation */}
         <div className="flex flex-col h-full items-start pt-12 gap-12 text-white text-xl font-bold">
           <div className="flex flex-row items-center px-6">
-            <Image src="/dashboard/logo.svg" alt="Logo" className="w-9 h-9" width={36} height={36} />
+            <Image src="/icons/logo.svg" alt="Logo" className="w-9 h-9" width={36} height={36} />
             <div className="leading-none ml-2">
               <p>HACKATTACK</p>
-              <p className="text-sm">2025</p>
+              <p className="">2025 Admin</p>
             </div>
           </div>
 
@@ -142,7 +142,7 @@ export default function AdminSidebar({ isLoggedIn, onSignOut }: SidebarProps) {
             >
               <div className="flex justify-between items-center px-6 py-4">
                 <div className="flex items-center gap-2 font-bold">
-                  <Image src="/dashboard/logo.svg" alt="Logo" width={36} height={36} />
+                  <Image src="/icons/logo.svg" alt="Logo" width={36} height={36} />
                   <span>HACKATTACK</span>
                 </div>
                 <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/20 rounded-lg">
