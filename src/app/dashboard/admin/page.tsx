@@ -1,6 +1,6 @@
 import React from "react";
 import { AdminHeaderDashboard } from "../_components/AdminHeaderDashboard";
-import AdminDashboard from "../_components/AdminSubmissionDashboard";
+import AdminDashboard from "../_components/AdminDashboard";
 import RegistrationTableWrapper from "../_components/RegistrationTableWrapper";
 
 const AdminDashboardPage = () => {

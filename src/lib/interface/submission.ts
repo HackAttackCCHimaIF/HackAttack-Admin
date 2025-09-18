@@ -24,6 +24,14 @@ export interface Submission {
   updatedAt: string;
 }
 
+export interface SubmissionStats {
+  total: number;
+  valid: number;
+  invalid: number;
+  submitted: number;
+  notSubmitted: number;
+}
+
 export interface SubmissionWithTeam extends Submission {
   team: Team;
   teamMembers: TeamMember[];

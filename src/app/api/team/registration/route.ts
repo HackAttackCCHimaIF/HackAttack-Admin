@@ -4,7 +4,6 @@ import { TeamDB, Team, TeamWithDetails } from "@/lib/interface/team";
 import { UserDB, User } from "@/lib/interface/users";
 import { TeamMemberDB, TeamMember } from "@/lib/interface/teammember";
 
-// Helper function to convert database types to app types
 function convertUserDBToUser(userDB: UserDB): User {
   return {
     id: userDB.id,
@@ -50,7 +49,6 @@ function convertTeamMemberDBToTeamMember(memberDB: TeamMemberDB): TeamMember {
 
 export async function GET() {
   try {
-    // First, let's try a simpler approach - fetch teams and users separately
     const { data: teamsData, error: teamsError } = await supabaseServer
       .from("Team")
       .select("*");
@@ -63,7 +61,6 @@ export async function GET() {
       );
     }
 
-    // Fetch users
     const { data: usersData, error: usersError } = await supabaseServer
       .from("Users")
       .select("*");
@@ -76,7 +73,6 @@ export async function GET() {
       );
     }
 
-    // Fetch team members
     const { data: membersData, error: membersError } = await supabaseServer
       .from("TeamMember")
       .select("*");
@@ -89,18 +85,15 @@ export async function GET() {
       );
     }
 
-    // Convert to app types and combine data
     const teams: TeamWithDetails[] = teamsData
       .map((teamData: TeamDB) => {
         const team = convertTeamDBToTeam(teamData);
 
-        // Find creator
         const creatorData = usersData.find(
           (user: UserDB) => user.id === teamData.created_by
         );
         const creator = creatorData ? convertUserDBToUser(creatorData) : null;
 
-        // Find team members
         const teamMembers = membersData
           .filter((member: TeamMemberDB) => member.team_id === teamData.id)
           .map((member: TeamMemberDB) =>
@@ -114,7 +107,7 @@ export async function GET() {
           memberCount: teamMembers.length,
         };
       })
-      .filter((team) => team.creator !== null); // Filter out teams without creators
+      .filter((team) => team.creator !== null);
 
     return NextResponse.json({ data: teams });
   } catch (error) {

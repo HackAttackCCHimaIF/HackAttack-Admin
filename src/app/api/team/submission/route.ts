@@ -1,26 +1,8 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/config/supabase-server";
-import {
-  SubmissionDB,
-  Submission,
-  SubmissionWithTeam,
-} from "@/lib/interface/submission";
+import { SubmissionDB } from "@/lib/interface/submission";
 import { TeamDB, Team } from "@/lib/interface/team";
 import { TeamMemberDB, TeamMember } from "@/lib/interface/teammember";
-
-// Helper function to convert database types to app types
-function convertSubmissionDBToSubmission(
-  submissionDB: SubmissionDB
-): Submission {
-  return {
-    id: submissionDB.id,
-    teamId: submissionDB.team_id,
-    proposalUrl: submissionDB.proposal_url,
-    status: submissionDB.status,
-    createdAt: submissionDB.created_at,
-    updatedAt: submissionDB.updated_at,
-  };
-}
 
 function convertTeamDBToTeam(teamDB: TeamDB): Team {
   return {
@@ -33,6 +15,7 @@ function convertTeamDBToTeam(teamDB: TeamDB): Team {
     createdAt: teamDB.created_at,
     updatedAt: teamDB.updated_at,
     approvalStatus: teamDB.approvalstatus,
+    rejectMessage: teamDB.reject_message,
   };
 }
 
@@ -52,14 +35,52 @@ function convertTeamMemberDBToTeamMember(memberDB: TeamMemberDB): TeamMember {
   };
 }
 
+interface TeamWithSubmissionStatus extends Team {
+  teamMembers: TeamMember[];
+  hasSubmission: boolean;
+  submissionId?: string;
+  submissionStatus?: string;
+  submissionDate?: string;
+}
+
 export async function GET() {
   try {
+    const { data: teamsData, error: teamsError } = await supabaseServer
+      .from("Team")
+      .select("*");
+
+    if (teamsError) {
+      console.error("Error fetching teams:", teamsError);
+      return NextResponse.json(
+        { error: "Failed to fetch teams" },
+        { status: 500 }
+      );
+    }
+
+    if (!teamsData || teamsData.length === 0) {
+      return NextResponse.json({ data: [] });
+    }
+
+    const teamIds = teamsData.map((team: TeamDB) => team.id);
+
+    const { data: membersData, error: membersError } = await supabaseServer
+      .from("TeamMember")
+      .select("*")
+      .in("team_id", teamIds);
+
+    if (membersError) {
+      console.error("Error fetching team members:", membersError);
+      return NextResponse.json(
+        { error: "Failed to fetch team members" },
+        { status: 500 }
+      );
+    }
+
     const { data: submissionsData, error: submissionsError } =
-      await supabaseServer.from("Submission").select(`
-        *,
-        Team:Team(*),
-        TeamMember:TeamMember(*)
-      `);
+      await supabaseServer
+        .from("Submission")
+        .select("*")
+        .in("team_id", teamIds);
 
     if (submissionsError) {
       console.error("Error fetching submissions:", submissionsError);
@@ -69,24 +90,36 @@ export async function GET() {
       );
     }
 
-    // Convert to app types
-    const submissions: SubmissionWithTeam[] = submissionsData.map(
-      (submissionData) => {
-        const submission = convertSubmissionDBToSubmission(submissionData);
-        const team = convertTeamDBToTeam(submissionData.team);
-        const teamMembers = submissionData.team_members.map(
-          (member: TeamMemberDB) => convertTeamMemberDBToTeamMember(member)
-        );
+    const submissionMap = new Map();
+    submissionsData?.forEach((submission: SubmissionDB) => {
+      submissionMap.set(submission.team_id, submission);
+    });
+
+    const teamsWithSubmissionStatus: TeamWithSubmissionStatus[] = teamsData.map(
+      (teamData: TeamDB) => {
+        const team = convertTeamDBToTeam(teamData);
+
+        const teamMembers =
+          membersData
+            ?.filter((member: TeamMemberDB) => member.team_id === teamData.id)
+            .map((member: TeamMemberDB) =>
+              convertTeamMemberDBToTeamMember(member)
+            ) || [];
+
+        const submission = submissionMap.get(teamData.id);
 
         return {
-          ...submission,
-          team,
+          ...team,
           teamMembers,
+          hasSubmission: !!submission,
+          submissionId: submission?.id,
+          submissionStatus: submission?.status,
+          submissionDate: submission?.created_at,
         };
       }
     );
 
-    return NextResponse.json({ data: submissions });
+    return NextResponse.json({ data: teamsWithSubmissionStatus });
   } catch (error) {
     console.error("Unexpected error:", error);
     return NextResponse.json(
