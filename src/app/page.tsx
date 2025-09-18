@@ -23,18 +23,33 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
-        toast.error("Login failed: " + error.message);
+        toast.error("Invalid credentials: " + error.message);
         return;
       }
 
-      toast.success("Login successful! Welcome, Admin.");
-      router.push("/dashboard/admin");
+      await supabase.auth.signOut();
+
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${
+            window.location.origin
+          }/auth/confirm?next=${encodeURIComponent("/dashboard/admin")}`,
+        },
+      });
+
+      if (otpError) {
+        toast.error("Failed to send verification email: " + otpError.message);
+        return;
+      }
+
+      toast.success("Verification email sent. Please check your inbox.");
     } catch (error) {
       console.error("Login error:", error);
       toast.error("An unexpected error occurred");
