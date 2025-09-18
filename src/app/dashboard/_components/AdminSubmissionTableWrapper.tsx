@@ -11,29 +11,22 @@ export default function AdminSubmissionTableWrapper() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      const shouldFail = Math.random() < 0.3; // simulasi gagal 30%
-
-      if (shouldFail) {
-        setError("Oops! Failed to fetch submission data.");
-      } else {
-        setLoaded(true);
-      }
-    }, 1500);
+      setLoaded(true);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, []);
 
   if (error) {
     return (
-    <div className="relative w-full flex-1 h-full flex items-center justify-center rounded-[20px] overflow-hidden bg-gradient-to-r from-[#0F75BD] to-[#64BB48]">
-
+      <div className="relative w-full flex-1 h-full flex items-center justify-center rounded-[20px] overflow-hidden bg-gradient-to-r from-[#0F75BD] to-[#64BB48]">
         {/* background gradient dark */}
         <div className="absolute inset-0 bg-gradient-to-t from-black to-[#575757] opacity-90" />
 
         {/* tirai kiri */}
         <Image
-        width={1000}
-        height={1000}
+          width={1000}
+          height={1000}
           src="/landing-page/tirai2.svg"
           alt="tirai kiri"
           className="absolute left-0 top-0 h-full w-auto"
@@ -41,8 +34,8 @@ export default function AdminSubmissionTableWrapper() {
 
         {/* tirai kanan */}
         <Image
-        width={1000}
-        height={1000}
+          width={1000}
+          height={1000}
           src="/landing-page/tirai2knn.svg"
           alt="tirai kanan"
           className="absolute right-0 top-0 h-full w-auto"

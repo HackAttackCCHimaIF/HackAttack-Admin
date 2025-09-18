@@ -11,22 +11,15 @@ export default function RegistrationTableWrapper() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      const shouldFail = Math.random() < 0.3; // simulasi error 30%
-
-      if (shouldFail) {
-        setError("⚠️ Failed to fetch registration data.");
-      } else {
-        setLoaded(true);
-      }
-    }, 1500);
+      setLoaded(true);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, []);
 
   if (error) {
     return (
-    <div className="relative w-full flex-1 h-full flex items-center justify-center rounded-[20px] overflow-hidden bg-gradient-to-r from-[#0F75BD] to-[#64BB48]">
-
+      <div className="relative w-full flex-1 h-full flex items-center justify-center rounded-[20px] overflow-hidden bg-gradient-to-r from-[#0F75BD] to-[#64BB48]">
         {/* background gradient dark */}
         <div className="absolute inset-0 bg-gradient-to-t from-black to-[#575757] opacity-90" />
 
