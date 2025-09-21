@@ -14,7 +14,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge, badgeVariants } from "@/components/ui/badge";
@@ -26,6 +26,7 @@ import {
   XCircle,
   CheckCircle,
   Clock,
+  File,
 } from "lucide-react";
 
 import {
@@ -47,6 +48,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type Status = "Pending" | "Approve" | "Rejected";
 
@@ -140,6 +142,10 @@ export default function AdminWorkshopTable() {
   const [reason, setReason] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
 
+  const [filterPending, setFilterPending] = useState(false);
+  const [filterApproved, setFilterApproved] = useState(false);
+  const [filterRejected, setFilterRejected] = useState(false);
+
   const handleApprove = () => {
     if (selected.index !== -1) {
       const updated = [...participants];
@@ -152,6 +158,16 @@ export default function AdminWorkshopTable() {
 
   const handleReject = () => {
     setShowReason(true); // buka modal alasan setelah YES
+  };
+
+  const handleSelectAll = () => {
+    setFilterPending(true);
+    setFilterApproved(true);
+    setFilterRejected(true)
+  };
+
+  const handleApply = () => {
+    // hanya trigger re-render, logikanya ada di filteredData
   };
 
   const handleSubmitReason = () => {
@@ -167,19 +183,36 @@ export default function AdminWorkshopTable() {
     }
   };
 
-  const filteredData = participants.filter((item) =>
-    item.team.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredData = participants.filter((item) => {
+    const matchesSearch = item.team
+      .toLowerCase()
+      .includes(search.toLowerCase());
+
+    const matchesFilter =
+      (filterApproved && item.status === "Approve") ||
+      (filterPending && item.status === "Pending") ||
+      (!filterApproved && !filterPending); 
+
+    return matchesSearch && matchesFilter;
+  });
 
   return (
     <div className="rounded-[20px] p-[2px] bg-gradient-to-r from-[#0F75BD] to-[#64BB48] h-full">
       <div className="bg-gradient-to-t from-black to-[#575757] rounded-[18px] p-6 text-white h-full flex flex-col">
         {/* Header */}
-        <div className="mb-6">
-          <h2 className="text-xl font-bold">Registration Progress</h2>
-          <p className="text-sm text-gray-300">
-            Overview of Participant Registration Progress
-          </p>
+        <div className="w-full flex items-center justify-between">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold">Workshop Progress</h2>
+            <p className="text-sm text-gray-300">
+              Overview of Participant Workshop Progress
+            </p>
+          </div>
+          <div>
+            <Button className="bg-white/10 hover:bg-white/20 text-white">
+              <File className="h-4 w-4 mr-2" />
+              Download by Excel (.csv)
+            </Button>
+          </div>
         </div>
 
         {/* Search & Filter */}
@@ -203,11 +236,66 @@ export default function AdminWorkshopTable() {
                 <Filter className="h-4 w-4 text-[#5B5B5B]" /> Filter By
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>Status</DropdownMenuItem>
-              <DropdownMenuItem>Date</DropdownMenuItem>
-              <DropdownMenuItem>Institution</DropdownMenuItem>
-            </DropdownMenuContent>
+            <DropdownMenuContent className="p-2 w-52 bg-white text-black">
+                  {/* Checkbox Approved */}
+                  <div
+                      className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                      onClick={() => setFilterApproved(!filterApproved)}
+                  >
+                      <Checkbox
+                      checked={filterApproved}
+                      onCheckedChange={(checked) =>
+                          setFilterApproved(checked === true)
+                      }
+                      />
+                      <span className="text-sm">Approved</span>
+                  </div>
+
+                  {/* Checkbox Pending */}
+                  <div
+                      className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                      onClick={() => setFilterPending(!filterPending)}
+                  >
+                      <Checkbox
+                      checked={filterPending}
+                      onCheckedChange={(checked) =>
+                          setFilterPending(checked === true)
+                      }
+                      />
+                      <span className="text-sm">Pending</span>
+                  </div>
+
+                  <div
+                      className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                      onClick={() => setFilterRejected(!filterRejected)}
+                  >
+                      <Checkbox
+                      checked={filterRejected}
+                      onCheckedChange={(checked) =>
+                          setFilterRejected(checked === true)
+                      }
+                      />
+                      <span className="text-sm">Rejected</span>
+                  </div>
+
+                  <DropdownMenuSeparator />
+
+                  {/* Action links */}
+                  <div className="flex items-center justify-between px-2 py-1">
+                      <button
+                      onClick={handleSelectAll}
+                      className="text-blue-600 text-sm hover:underline"
+                      >
+                      Select all
+                      </button>
+                      <button
+                      onClick={handleApply}
+                      className="text-blue-600 text-sm hover:underline font-medium"
+                      >
+                      Apply
+                      </button>
+                  </div>
+                </DropdownMenuContent>
           </DropdownMenu>
         </div>
 

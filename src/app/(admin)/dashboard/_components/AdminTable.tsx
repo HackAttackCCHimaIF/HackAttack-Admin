@@ -14,7 +14,6 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge, badgeVariants } from "@/components/ui/badge";
@@ -26,6 +25,7 @@ import {
   XCircle,
   CheckCircle,
   Clock,
+  File,
 } from "lucide-react";
 
 import {
@@ -47,6 +47,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type Status = "Pending" | "Approve" | "Rejected";
 
@@ -113,7 +114,6 @@ const getStatusBadge = (status: Status) => {
 export default function RegistrationTable() {
   const [search, setSearch] = useState("");
   const [participants, setParticipants] = useState(initialData);
-
   const [selected, setSelected] = useState<{
     index: number;
     action: "Approve" | "Reject" | null;
@@ -122,6 +122,24 @@ export default function RegistrationTable() {
   const [showReason, setShowReason] = useState(false);
   const [reason, setReason] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+
+  const [filterStatus, setFilterStatus] = useState(false);
+  const [filterDate, setFilterDate] = useState(false);
+  const [filterInstitution, setFilterInstitution] = useState(false);
+
+  const handleSelectAll = () => {
+    setFilterStatus(true);
+    setFilterDate(true);
+    setFilterInstitution(true);
+  };
+
+  const handleApply = () => {
+    console.log("Applied filters:", {
+      filterStatus,
+      filterDate,
+      filterInstitution,
+    });
+  };
 
   const handleApprove = () => {
     if (selected.index !== -1) {
@@ -133,8 +151,10 @@ export default function RegistrationTable() {
     }
   };
 
+  
+
   const handleReject = () => {
-    setShowReason(true); // buka modal alasan setelah YES
+    setShowReason(true);
   };
 
   const handleSubmitReason = () => {
@@ -150,19 +170,47 @@ export default function RegistrationTable() {
     }
   };
 
-  const filteredData = participants.filter((item) =>
-    item.team.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredData = participants.filter((item) => {
+    const matchesSearch = item.team
+      .toLowerCase()
+      .includes(search.toLowerCase());
+
+    let matchesFilter = true;
+
+    if (filterStatus) {
+      matchesFilter = matchesFilter && item.status === "Pending"; // contoh filter hanya pending
+    }
+
+    if (filterDate) {
+      matchesFilter =
+        matchesFilter && item.date === "16/08/2025"; // contoh filter hardcoded
+    }
+
+    if (filterInstitution) {
+      matchesFilter =
+        matchesFilter && item.institution === "Telkom University"; // contoh filter hardcoded
+    }
+
+    return matchesSearch && matchesFilter;
+  });
 
   return (
     <div className="rounded-[20px] p-[2px] bg-gradient-to-r from-[#0F75BD] to-[#64BB48] h-full">
       <div className="bg-gradient-to-t from-black to-[#575757] rounded-[18px] p-6 text-white h-full flex flex-col">
         {/* Header */}
-        <div className="mb-6">
-          <h2 className="text-xl font-bold">Registration Progress</h2>
-          <p className="text-sm text-gray-300">
-            Overview of Participant Registration Progress
-          </p>
+        <div className="w-full flex items-center justify-between">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold">Registration Progress</h2>
+            <p className="text-sm text-gray-300">
+              Overview of Participant Registration Progress
+            </p>
+          </div>
+          <div>
+            <Button className="bg-white/10 hover:bg-white/20 text-white">
+              <File className="h-4 w-4 mr-2" />
+              Download by Excel (.csv)
+            </Button>
+          </div>
         </div>
 
         {/* Search & Filter */}
@@ -186,10 +234,64 @@ export default function RegistrationTable() {
                 <Filter className="h-4 w-4 text-[#5B5B5B]" /> Filter By
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>Status</DropdownMenuItem>
-              <DropdownMenuItem>Date</DropdownMenuItem>
-              <DropdownMenuItem>Institution</DropdownMenuItem>
+             <DropdownMenuContent className="p-2 w-52 bg-white text-black">
+              {/* Checkbox Status */}
+              <div
+                className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                onClick={() => setFilterStatus(!filterStatus)}
+              >
+                <Checkbox
+                  checked={filterStatus}
+                  onCheckedChange={(checked) =>
+                    setFilterStatus(checked === true)
+                  }
+                />
+                <span className="text-sm">Status</span>
+              </div>
+
+              {/* Checkbox Date */}
+              <div
+                className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                onClick={() => setFilterDate(!filterDate)}
+              >
+                <Checkbox
+                  checked={filterDate}
+                  onCheckedChange={(checked) =>
+                    setFilterDate(checked === true)
+                  }
+                />
+                <span className="text-sm">Date</span>
+              </div>
+
+              {/* Checkbox Institution */}
+              <div
+                className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                onClick={() => setFilterInstitution(!filterInstitution)}
+              >
+                <Checkbox
+                  checked={filterInstitution}
+                  onCheckedChange={(checked) =>
+                    setFilterInstitution(checked === true)
+                  }
+                />
+                <span className="text-sm">Institution</span>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-between px-2 py-1 border-t mt-2">
+                <button
+                  onClick={handleSelectAll}
+                  className="text-blue-600 text-sm hover:underline"
+                >
+                  Select all
+                </button>
+                <button
+                  onClick={handleApply}
+                  className="text-blue-600 text-sm hover:underline font-medium"
+                >
+                  Apply
+                </button>
+              </div>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
