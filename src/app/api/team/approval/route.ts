@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/config/supabase-server";
 import { TeamApproval } from "@/lib/interface/team";
 import { EmailService } from "@/lib/services/emailService";
+import { NotificationService } from "@/lib/services/notificationService";
 
 export async function PUT(request: NextRequest) {
   try {
@@ -21,21 +22,9 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    if (
-      approval === TeamApproval.Rejected &&
-      (!rejectMessage || rejectMessage.trim() === "")
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Reject message is required when rejecting a team",
-        },
-        { status: 400 }
-      );
-    }
     const { data: teamData, error: fetchTeamError } = await supabaseServer
       .from("Team")
-      .select("id, created_at, team_name")
+      .select("id, created_at, team_name, created_by")
       .eq("id", teamId)
       .single();
 
@@ -51,14 +40,39 @@ export async function PUT(request: NextRequest) {
       .from("TeamMember")
       .select("email, name")
       .eq("team_id", teamId)
-      .eq("is_leader", true)
+      .or(`is_leader.eq.true,email.eq.${teamData.created_by}`)
+      .limit(1)
       .single();
 
     if (fetchLeaderError || !leaderData) {
       console.error("Error fetching team leader data:", fetchLeaderError);
+
+      const { data: anyMemberData, error: anyMemberError } =
+        await supabaseServer
+          .from("TeamMember")
+          .select("email, name")
+          .eq("team_id", teamId)
+          .limit(1)
+          .single();
+
+      if (anyMemberError || !anyMemberData) {
+        return NextResponse.json(
+          { success: false, message: "No team members found" },
+          { status: 404 }
+        );
+      }
+    }
+
+    if (
+      approval === TeamApproval.Rejected &&
+      (!rejectMessage || rejectMessage.trim() === "")
+    ) {
       return NextResponse.json(
-        { success: false, message: "Team leader not found" },
-        { status: 404 }
+        {
+          success: false,
+          message: "Reject message is required when rejecting a team",
+        },
+        { status: 400 }
       );
     }
 
@@ -89,36 +103,59 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    let emailSent = false;
     try {
       if (approval === TeamApproval.Accepted) {
         await EmailService.sendEmailWithAutoBatch(
-          leaderData.email,
-          leaderData.name,
+          leaderData?.email || "",
+          leaderData?.name || "",
           teamData.created_at,
           "success"
         );
         console.log(
-          `Success email sent to ${leaderData.email} (${leaderData.name})`
+          `Success email sent to ${leaderData?.email || ""} (${
+            leaderData?.name || ""
+          })`
         );
+        emailSent = true;
       } else if (approval === TeamApproval.Rejected) {
         await EmailService.sendFailedRegistrationEmail(
-          leaderData.email,
-          leaderData.name,
+          leaderData?.email || "",
+          leaderData?.name || "",
           rejectMessage
         );
         console.log(
-          `Rejection email sent to ${leaderData.email} (${leaderData.name})`
+          `Rejection email sent to ${leaderData?.email || ""} (${
+            leaderData?.name || ""
+          })`
         );
+        emailSent = true;
       }
     } catch (emailError) {
       console.error("Failed to send email:", emailError);
+    }
+
+    // Create notification for team leader (NEW)
+    let notificationSent = false;
+    try {
+      notificationSent =
+        await NotificationService.createTeamApprovalNotification(
+          teamData.created_by,
+          teamId,
+          teamData.team_name,
+          approval === TeamApproval.Accepted,
+          rejectMessage
+        );
+    } catch (notificationError) {
+      console.error("Failed to create notification:", notificationError);
     }
 
     return NextResponse.json({
       success: true,
       message: "Team approval updated successfully",
       data: data[0],
-      emailSent: true,
+      emailSent,
+      notificationSent,
     });
   } catch (error) {
     console.error("Team approval error:", error);
