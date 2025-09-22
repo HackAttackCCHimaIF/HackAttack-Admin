@@ -14,7 +14,6 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge, badgeVariants } from "@/components/ui/badge";
@@ -52,56 +51,39 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 type Status = "Pending" | "Approve" | "Rejected";
 
-interface Member {
-  name: string;
-  email: string;
-  role: "Team Leader" | "Member";
-  institution: string;
+interface Participant {
   team: string;
-  status: "Pending" | "Approve" | "Rejected";
+  institution: string;
+  members: number;
+  status: Status;
   date: string;
   reason?: string;
 }
 
-const initialData: Member[] = [
+const initialData: Participant[] = [
   {
-    name: "Yesi Sukmawati",
-    email: "yesi.sukmawati23@gmail.com",
-    role: "Team Leader",
     team: "Volkaholics",
     institution: "Telkom University",
+    members: 3,
     status: "Pending",
     date: "15/08/2025",
   },
   {
-    name: "Indah Pratiwi",
-    email: "indah.pratiwi05@gmail.com",
-    role: "Member",
-    team: "Volkaholics",
-    institution: "Telkom University",
-    status: "Pending",
-    date: "15/08/2025",
-  },
-  {
-    name: "Salma Safira",
-    email: "salma.safira02@gmail.com",
-    role: "Member",
-    team: "Volkaholics",
-    institution: "Telkom University",
-    status: "Pending",
-    date: "15/08/2025",
-  },
-  {
-    name: "Daffa Hakim",
-    email: "daffa.hakim@gmail.com",
-    role: "Team Leader",
     team: "Next Devs",
     institution: "UI",
+    members: 4,
     status: "Approve",
     date: "16/08/2025",
   },
+  {
+    team: "Hackify",
+    institution: "ITB",
+    members: 5,
+    status: "Rejected",
+    date: "16/08/2025",
+    reason: "Not meeting requirements",
+  },
 ];
-
 
 const getStatusBadge = (status: Status) => {
   switch (status) {
@@ -129,10 +111,9 @@ const getStatusBadge = (status: Status) => {
   }
 };
 
-export default function AdminWorkshopTable() {
+export default function RegistrationTable() {
   const [search, setSearch] = useState("");
   const [participants, setParticipants] = useState(initialData);
-
   const [selected, setSelected] = useState<{
     index: number;
     action: "Approve" | "Reject" | null;
@@ -142,9 +123,23 @@ export default function AdminWorkshopTable() {
   const [reason, setReason] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const [filterPending, setFilterPending] = useState(false);
-  const [filterApproved, setFilterApproved] = useState(false);
-  const [filterRejected, setFilterRejected] = useState(false);
+  const [filterStatus, setFilterStatus] = useState(false);
+  const [filterDate, setFilterDate] = useState(false);
+  const [filterInstitution, setFilterInstitution] = useState(false);
+
+  const handleSelectAll = () => {
+    setFilterStatus(true);
+    setFilterDate(true);
+    setFilterInstitution(true);
+  };
+
+  const handleApply = () => {
+    console.log("Applied filters:", {
+      filterStatus,
+      filterDate,
+      filterInstitution,
+    });
+  };
 
   const handleApprove = () => {
     if (selected.index !== -1) {
@@ -156,18 +151,10 @@ export default function AdminWorkshopTable() {
     }
   };
 
+  
+
   const handleReject = () => {
-    setShowReason(true); // buka modal alasan setelah YES
-  };
-
-  const handleSelectAll = () => {
-    setFilterPending(true);
-    setFilterApproved(true);
-    setFilterRejected(true)
-  };
-
-  const handleApply = () => {
-    // hanya trigger re-render, logikanya ada di filteredData
+    setShowReason(true);
   };
 
   const handleSubmitReason = () => {
@@ -188,10 +175,21 @@ export default function AdminWorkshopTable() {
       .toLowerCase()
       .includes(search.toLowerCase());
 
-    const matchesFilter =
-      (filterApproved && item.status === "Approve") ||
-      (filterPending && item.status === "Pending") ||
-      (!filterApproved && !filterPending); 
+    let matchesFilter = true;
+
+    if (filterStatus) {
+      matchesFilter = matchesFilter && item.status === "Pending"; // contoh filter hanya pending
+    }
+
+    if (filterDate) {
+      matchesFilter =
+        matchesFilter && item.date === "16/08/2025"; // contoh filter hardcoded
+    }
+
+    if (filterInstitution) {
+      matchesFilter =
+        matchesFilter && item.institution === "Telkom University"; // contoh filter hardcoded
+    }
 
     return matchesSearch && matchesFilter;
   });
@@ -202,9 +200,9 @@ export default function AdminWorkshopTable() {
         {/* Header */}
         <div className="w-full flex items-center justify-between">
           <div className="mb-6">
-            <h2 className="text-xl font-bold">Workshop Progress</h2>
+            <h2 className="text-xl font-bold">Registration Progress</h2>
             <p className="text-sm text-gray-300">
-              Overview of Participant Workshop Progress
+              Overview of Participant Registration Progress
             </p>
           </div>
           <div>
@@ -236,66 +234,65 @@ export default function AdminWorkshopTable() {
                 <Filter className="h-4 w-4 text-[#5B5B5B]" /> Filter By
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="p-2 w-52 bg-white text-black">
-                  {/* Checkbox Approved */}
-                  <div
-                      className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
-                      onClick={() => setFilterApproved(!filterApproved)}
-                  >
-                      <Checkbox
-                      checked={filterApproved}
-                      onCheckedChange={(checked) =>
-                          setFilterApproved(checked === true)
-                      }
-                      />
-                      <span className="text-sm">Approved</span>
-                  </div>
+             <DropdownMenuContent className="p-2 w-52 bg-white text-black">
+              {/* Checkbox Status */}
+              <div
+                className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                onClick={() => setFilterStatus(!filterStatus)}
+              >
+                <Checkbox
+                  checked={filterStatus}
+                  onCheckedChange={(checked) =>
+                    setFilterStatus(checked === true)
+                  }
+                />
+                <span className="text-sm">Status</span>
+              </div>
 
-                  {/* Checkbox Pending */}
-                  <div
-                      className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
-                      onClick={() => setFilterPending(!filterPending)}
-                  >
-                      <Checkbox
-                      checked={filterPending}
-                      onCheckedChange={(checked) =>
-                          setFilterPending(checked === true)
-                      }
-                      />
-                      <span className="text-sm">Pending</span>
-                  </div>
+              {/* Checkbox Date */}
+              <div
+                className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                onClick={() => setFilterDate(!filterDate)}
+              >
+                <Checkbox
+                  checked={filterDate}
+                  onCheckedChange={(checked) =>
+                    setFilterDate(checked === true)
+                  }
+                />
+                <span className="text-sm">Date</span>
+              </div>
 
-                  <div
-                      className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
-                      onClick={() => setFilterRejected(!filterRejected)}
-                  >
-                      <Checkbox
-                      checked={filterRejected}
-                      onCheckedChange={(checked) =>
-                          setFilterRejected(checked === true)
-                      }
-                      />
-                      <span className="text-sm">Rejected</span>
-                  </div>
+              {/* Checkbox Institution */}
+              <div
+                className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                onClick={() => setFilterInstitution(!filterInstitution)}
+              >
+                <Checkbox
+                  checked={filterInstitution}
+                  onCheckedChange={(checked) =>
+                    setFilterInstitution(checked === true)
+                  }
+                />
+                <span className="text-sm">Institution</span>
+              </div>
 
-                  <DropdownMenuSeparator />
-
-                  {/* Action links */}
-                  <div className="flex items-center justify-between px-2 py-1">
-                      <button
-                      onClick={handleSelectAll}
-                      className="text-blue-600 text-sm hover:underline"
-                      >
-                      Select all
-                      </button>
-                      <button
-                      onClick={handleApply}
-                      className="text-blue-600 text-sm hover:underline font-medium"
-                      >
-                      Apply
-                      </button>
-                  </div>
-                </DropdownMenuContent>
+              {/* Actions */}
+              <div className="flex items-center justify-between px-2 py-1 border-t mt-2">
+                <button
+                  onClick={handleSelectAll}
+                  className="text-blue-600 text-sm hover:underline"
+                >
+                  Select all
+                </button>
+                <button
+                  onClick={handleApply}
+                  className="text-blue-600 text-sm hover:underline font-medium"
+                >
+                  Apply
+                </button>
+              </div>
+            </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
@@ -330,7 +327,7 @@ export default function AdminWorkshopTable() {
                             size="sm"
                             className="flex items-center gap-1 bg-white/10 border-white/20 text-white"
                             >
-                                <Eye className="h-4 w-4" /> Details ({row.name})
+                                <Eye className="h-4 w-4" /> Details ({row.members})
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="!max-w-3xl lg:!max-w-7xl !w-full rounded-2xl backdrop-blur-lg bg-gradient-to-b from-white/50 to-black/50 text-white">
@@ -342,7 +339,28 @@ export default function AdminWorkshopTable() {
 
                             {/* List anggota tim */}
                             <div className="flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
+                            {[
+                                {
+                                name: "Yesi Sukmawati",
+                                email: "yesi.sukmawati23@gmail.com",
+                                role: "Team Leader",
+                                status: "Unverified",
+                                },
+                                {
+                                name: "Indah Pratiwi",
+                                email: "indah.pratiwi05@gmail.com",
+                                role: "Member",
+                                status: "Unverified",
+                                },
+                                {
+                                name: "Salma Safira",
+                                email: "salma.safira02@gmail.com",
+                                role: "Member",
+                                status: "Unverified",
+                                },
+                            ].map((member, idx) => (
                                 <div
+                                key={idx}
                                 className="bg-white/20 backdrop-blur-lg rounded-lg p-4 shadow-md flex flex-col"
                                 >
                                 {/* Nama & Role */}
@@ -350,8 +368,8 @@ export default function AdminWorkshopTable() {
                                     <div className="flex flex-col items-start gap-2 w-full">
                                         <div className="flex items-start justify-between w-full">
                                             <div>
-                                                <h3 className="font-semibold text-lg">{row.name}</h3>
-                                                <p className="text-sm text-white">{row.email}</p>
+                                                <h3 className="font-semibold text-lg">{member.name}</h3>
+                                                <p className="text-sm text-white">{member.email}</p>
                                             </div>
                                             <div className="flex items-start gap-6 mt-3">
                                                 <div className="flex gap-1">
@@ -364,18 +382,18 @@ export default function AdminWorkshopTable() {
                                                 </div>
                                                 <Badge className="bg-[#FAB94F] text-white ml-auto">
                                                     <Clock/>
-                                                    {row.status}
+                                                    {member.status}
                                                 </Badge>
                                             </div>
                                         </div>
                                         <span
                                             className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                                row.role === "Team Leader"
+                                                member.role === "Team Leader"
                                                 ? "bg-black text-white"
                                                 : "bg-gray-700 text-gray-200"
                                             }`}
                                             >
-                                            {row.role}
+                                            {member.role}
                                         </span>
                                     </div>
                                 </div>
@@ -410,6 +428,7 @@ export default function AdminWorkshopTable() {
                                     </div>
                                 </div>
                                 </div>
+                            ))}
                             </div>
                         </DialogContent>
                     </Dialog>
