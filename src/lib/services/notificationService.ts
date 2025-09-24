@@ -62,7 +62,6 @@ export class NotificationService {
   static async createMemberApprovalNotification(
     userId: string,
     teamId: string,
-    memberId: string,
     memberName: string,
     teamName: string,
     approved: boolean

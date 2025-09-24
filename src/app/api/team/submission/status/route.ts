@@ -73,8 +73,7 @@ export async function PUT(request: NextRequest) {
           teamData.created_by,
           submissionData.team_id,
           submissionId,
-          teamData.team_name,
-          status === SubmissionStatus.Valid
+          teamData.team_name
         );
     } catch (notificationError) {
       console.error("Failed to create notification:", notificationError);
