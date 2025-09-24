@@ -12,7 +12,6 @@ export class NotificationService {
       const { error } = await supabaseServer.from("Notification").insert({
         user_id: params.userId,
         team_id: params.teamId || null,
-        member_id: params.memberId || null,
         submission_id: params.submissionId || null,
         type: params.type,
         title: params.title,
@@ -80,7 +79,6 @@ export class NotificationService {
     return this.createNotification({
       userId,
       teamId,
-      memberId,
       type,
       title,
       message,
