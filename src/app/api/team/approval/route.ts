@@ -135,7 +135,6 @@ export async function PUT(request: NextRequest) {
       console.error("Failed to send email:", emailError);
     }
 
-    // Create notification for team leader (NEW)
     let notificationSent = false;
     try {
       notificationSent =

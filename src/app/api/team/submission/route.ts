@@ -3,37 +3,10 @@ import { supabaseServer } from "@/lib/config/supabase-server";
 import { SubmissionDB } from "@/lib/interface/submission";
 import { TeamDB, Team } from "@/lib/interface/team";
 import { TeamMemberDB, TeamMember } from "@/lib/interface/teammember";
-
-function convertTeamDBToTeam(teamDB: TeamDB): Team {
-  return {
-    id: teamDB.id,
-    createdBy: teamDB.created_by,
-    teamName: teamDB.team_name,
-    institution: teamDB.institution,
-    whatsappNumber: teamDB.whatsapp_number,
-    paymentProofUrl: teamDB.paymentproof_url,
-    createdAt: teamDB.created_at,
-    updatedAt: teamDB.updated_at,
-    approvalStatus: teamDB.approvalstatus,
-    rejectMessage: teamDB.reject_message,
-  };
-}
-
-function convertTeamMemberDBToTeamMember(memberDB: TeamMemberDB): TeamMember {
-  return {
-    id: memberDB.id,
-    teamId: memberDB.team_id,
-    name: memberDB.name,
-    email: memberDB.email,
-    githubUrl: memberDB.github_url,
-    dataUrl: memberDB.data_url,
-    isLeader: memberDB.is_leader,
-    createdAt: memberDB.created_at,
-    updatedAt: memberDB.updated_at,
-    memberRole: memberDB.member_role,
-    memberApproval: memberDB.member_approval,
-  };
-}
+import {
+  convertTeamDBToTeam,
+  convertTeamMemberDBToTeamMember,
+} from "@/lib/utility/typeconverter";
 
 interface TeamWithSubmissionStatus extends Team {
   teamMembers: TeamMember[];

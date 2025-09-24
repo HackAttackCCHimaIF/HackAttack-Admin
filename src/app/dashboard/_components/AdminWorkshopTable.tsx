@@ -102,7 +102,6 @@ const initialData: Member[] = [
   },
 ];
 
-
 const getStatusBadge = (status: Status) => {
   switch (status) {
     case "Pending":
@@ -163,7 +162,7 @@ export default function AdminWorkshopTable() {
   const handleSelectAll = () => {
     setFilterPending(true);
     setFilterApproved(true);
-    setFilterRejected(true)
+    setFilterRejected(true);
   };
 
   const handleApply = () => {
@@ -191,7 +190,7 @@ export default function AdminWorkshopTable() {
     const matchesFilter =
       (filterApproved && item.status === "Approve") ||
       (filterPending && item.status === "Pending") ||
-      (!filterApproved && !filterPending); 
+      (!filterApproved && !filterPending);
 
     return matchesSearch && matchesFilter;
   });
@@ -210,7 +209,7 @@ export default function AdminWorkshopTable() {
           <div>
             <Button className="bg-white/10 hover:bg-white/20 text-white">
               <File className="h-4 w-4 mr-2" />
-              Download by Excel (.csv)
+              Download by Excel (.xlsx)
             </Button>
           </div>
         </div>
@@ -237,65 +236,65 @@ export default function AdminWorkshopTable() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="p-2 w-52 bg-white text-black">
-                  {/* Checkbox Approved */}
-                  <div
-                      className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
-                      onClick={() => setFilterApproved(!filterApproved)}
-                  >
-                      <Checkbox
-                      checked={filterApproved}
-                      onCheckedChange={(checked) =>
-                          setFilterApproved(checked === true)
-                      }
-                      />
-                      <span className="text-sm">Approved</span>
-                  </div>
+              {/* Checkbox Approved */}
+              <div
+                className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                onClick={() => setFilterApproved(!filterApproved)}
+              >
+                <Checkbox
+                  checked={filterApproved}
+                  onCheckedChange={(checked) =>
+                    setFilterApproved(checked === true)
+                  }
+                />
+                <span className="text-sm">Approved</span>
+              </div>
 
-                  {/* Checkbox Pending */}
-                  <div
-                      className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
-                      onClick={() => setFilterPending(!filterPending)}
-                  >
-                      <Checkbox
-                      checked={filterPending}
-                      onCheckedChange={(checked) =>
-                          setFilterPending(checked === true)
-                      }
-                      />
-                      <span className="text-sm">Pending</span>
-                  </div>
+              {/* Checkbox Pending */}
+              <div
+                className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                onClick={() => setFilterPending(!filterPending)}
+              >
+                <Checkbox
+                  checked={filterPending}
+                  onCheckedChange={(checked) =>
+                    setFilterPending(checked === true)
+                  }
+                />
+                <span className="text-sm">Pending</span>
+              </div>
 
-                  <div
-                      className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
-                      onClick={() => setFilterRejected(!filterRejected)}
-                  >
-                      <Checkbox
-                      checked={filterRejected}
-                      onCheckedChange={(checked) =>
-                          setFilterRejected(checked === true)
-                      }
-                      />
-                      <span className="text-sm">Rejected</span>
-                  </div>
+              <div
+                className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                onClick={() => setFilterRejected(!filterRejected)}
+              >
+                <Checkbox
+                  checked={filterRejected}
+                  onCheckedChange={(checked) =>
+                    setFilterRejected(checked === true)
+                  }
+                />
+                <span className="text-sm">Rejected</span>
+              </div>
 
-                  <DropdownMenuSeparator />
+              <DropdownMenuSeparator />
 
-                  {/* Action links */}
-                  <div className="flex items-center justify-between px-2 py-1">
-                      <button
-                      onClick={handleSelectAll}
-                      className="text-blue-600 text-sm hover:underline"
-                      >
-                      Select all
-                      </button>
-                      <button
-                      onClick={handleApply}
-                      className="text-blue-600 text-sm hover:underline font-medium"
-                      >
-                      Apply
-                      </button>
-                  </div>
-                </DropdownMenuContent>
+              {/* Action links */}
+              <div className="flex items-center justify-between px-2 py-1">
+                <button
+                  onClick={handleSelectAll}
+                  className="text-blue-600 text-sm hover:underline"
+                >
+                  Select all
+                </button>
+                <button
+                  onClick={handleApply}
+                  className="text-blue-600 text-sm hover:underline font-medium"
+                >
+                  Apply
+                </button>
+              </div>
+            </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
@@ -324,94 +323,106 @@ export default function AdminWorkshopTable() {
                   <TableCell className="py-4 px-6">{row.institution}</TableCell>
                   <TableCell className="py-4 px-6">
                     <Dialog>
-                        <DialogTrigger>
-                            <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex items-center gap-1 bg-white/10 border-white/20 text-white"
-                            >
-                                <Eye className="h-4 w-4" /> Details ({row.name})
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="!max-w-3xl lg:!max-w-7xl !w-full rounded-2xl backdrop-blur-lg bg-gradient-to-b from-white/50 to-black/50 text-white">
-                            <DialogHeader>
-                            <DialogTitle className="text-xl font-bold">
-                                Team Members : {row.team}
-                            </DialogTitle>
-                            </DialogHeader>
+                      <DialogTrigger>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-1 bg-white/10 border-white/20 text-white"
+                        >
+                          <Eye className="h-4 w-4" /> Details ({row.name})
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="!max-w-3xl lg:!max-w-7xl !w-full rounded-2xl backdrop-blur-lg bg-gradient-to-b from-white/50 to-black/50 text-white">
+                        <DialogHeader>
+                          <DialogTitle className="text-xl font-bold">
+                            Team Members : {row.team}
+                          </DialogTitle>
+                        </DialogHeader>
 
-                            {/* List anggota tim */}
-                            <div className="flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
-                                <div
-                                className="bg-white/20 backdrop-blur-lg rounded-lg p-4 shadow-md flex flex-col"
+                        {/* List anggota tim */}
+                        <div className="flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
+                          <div className="bg-white/20 backdrop-blur-lg rounded-lg p-4 shadow-md flex flex-col">
+                            {/* Nama & Role */}
+                            <div className="flex justify-between items-start">
+                              <div className="flex flex-col items-start gap-2 w-full">
+                                <div className="flex items-start justify-between w-full">
+                                  <div>
+                                    <h3 className="font-semibold text-lg">
+                                      {row.name}
+                                    </h3>
+                                    <p className="text-sm text-white">
+                                      {row.email}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-start gap-6 mt-3">
+                                    <div className="flex gap-1">
+                                      <button
+                                        className={badgeVariants({
+                                          className:
+                                            "cursor-pointer px-6 bg-[#4e4e4e]",
+                                        })}
+                                      >
+                                        <CheckCircle className="size-4" /> Yes!
+                                      </button>
+                                      <button
+                                        className={badgeVariants({
+                                          className:
+                                            "cursor-pointer px-6 bg-red-600",
+                                        })}
+                                      >
+                                        <XCircle className="size-4" /> No!
+                                      </button>
+                                    </div>
+                                    <Badge className="bg-[#FAB94F] text-white ml-auto">
+                                      <Clock />
+                                      {row.status}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <span
+                                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                    row.role === "Team Leader"
+                                      ? "bg-black text-white"
+                                      : "bg-gray-700 text-gray-200"
+                                  }`}
                                 >
-                                {/* Nama & Role */}
-                                <div className="flex justify-between items-start">
-                                    <div className="flex flex-col items-start gap-2 w-full">
-                                        <div className="flex items-start justify-between w-full">
-                                            <div>
-                                                <h3 className="font-semibold text-lg">{row.name}</h3>
-                                                <p className="text-sm text-white">{row.email}</p>
-                                            </div>
-                                            <div className="flex items-start gap-6 mt-3">
-                                                <div className="flex gap-1">
-                                                    <button className={badgeVariants({className: "cursor-pointer px-6 bg-[#4e4e4e]"})}>
-                                                        <CheckCircle className="size-4"/> Yes!
-                                                    </button>
-                                                    <button className={badgeVariants({className: "cursor-pointer px-6 bg-red-600"})}>
-                                                        <XCircle className="size-4"/> No!
-                                                    </button>
-                                                </div>
-                                                <Badge className="bg-[#FAB94F] text-white ml-auto">
-                                                    <Clock/>
-                                                    {row.status}
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                        <span
-                                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                                row.role === "Team Leader"
-                                                ? "bg-black text-white"
-                                                : "bg-gray-700 text-gray-200"
-                                            }`}
-                                            >
-                                            {row.role}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Documents Section */}
-                                <div className="mt-4">
-                                    <h4 className="font-semibold">Documents</h4>
-                                    <div className="flex items-center gap-3 mt-2 flex-col p-2 bg-white/30 rounded-md min-h-[140px]">
-                                        <div className="w-full flex justify-between">
-                                            <h5 className="text-xs">Link Files</h5>
-                                            <Badge className="bg-[#FFF2DD] text-[#D98634] rounded-full">
-                                                <Circle className="fill-current text-[#D98634] !size-2"/> Verification Required
-                                            </Badge>
-                                        </div>
-                                    <div className="flex flex-col gap-2">
-                                        <Button
-                                            size={"sm"}
-                                            variant="outline"
-                                            className="bg-white/10 border border-white/20 text-white hover:bg-white/20 hover:text-white"
-                                        >
-                                            <Eye/> Open Document
-                                        </Button>
-                                        <Button
-                                            size={"sm"}
-                                            variant="outline"
-                                            className="bg-white/10 border border-white/20 text-white hover:bg-white/20 hover:text-white"
-                                        >
-                                            <CheckCircle/> Verify?
-                                        </Button>
-                                    </div>
-                                    
-                                    </div>
-                                </div>
-                                </div>
+                                  {row.role}
+                                </span>
+                              </div>
                             </div>
-                        </DialogContent>
+
+                            {/* Documents Section */}
+                            <div className="mt-4">
+                              <h4 className="font-semibold">Documents</h4>
+                              <div className="flex items-center gap-3 mt-2 flex-col p-2 bg-white/30 rounded-md min-h-[140px]">
+                                <div className="w-full flex justify-between">
+                                  <h5 className="text-xs">Link Files</h5>
+                                  <Badge className="bg-[#FFF2DD] text-[#D98634] rounded-full">
+                                    <Circle className="fill-current text-[#D98634] !size-2" />{" "}
+                                    Verification Required
+                                  </Badge>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                  <Button
+                                    size={"sm"}
+                                    variant="outline"
+                                    className="bg-white/10 border border-white/20 text-white hover:bg-white/20 hover:text-white"
+                                  >
+                                    <Eye /> Open Document
+                                  </Button>
+                                  <Button
+                                    size={"sm"}
+                                    variant="outline"
+                                    className="bg-white/10 border border-white/20 text-white hover:bg-white/20 hover:text-white"
+                                  >
+                                    <CheckCircle /> Verify?
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </DialogContent>
                     </Dialog>
                   </TableCell>
                   <TableCell className="py-4 px-6">
