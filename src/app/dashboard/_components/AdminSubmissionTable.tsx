@@ -267,7 +267,7 @@ export default function AdminSubmissionTable() {
                 </Button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent className="p-2 w-52">
+              <DropdownMenuContent className="p-2 w-52 bg-white text-black">
                 {/* Checkbox Submitted */}
                 <div
                   className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
