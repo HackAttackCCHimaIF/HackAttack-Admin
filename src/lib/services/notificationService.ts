@@ -12,7 +12,6 @@ export class NotificationService {
       const { error } = await supabaseServer.from("Notification").insert({
         user_id: params.userId,
         team_id: params.teamId || null,
-        submission_id: params.submissionId || null,
         type: params.type,
         title: params.title,
         message: params.message,
@@ -88,7 +87,6 @@ export class NotificationService {
   static async createSubmissionApprovalNotification(
     userId: string,
     teamId: string,
-    submissionId: string,
     teamName: string,
     approved: boolean
   ): Promise<boolean> {
@@ -105,7 +103,6 @@ export class NotificationService {
     return this.createNotification({
       userId,
       teamId,
-      submissionId,
       type,
       title,
       message,
