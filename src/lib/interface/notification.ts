@@ -11,8 +11,6 @@ export interface NotificationDB {
   id: string;
   user_id: string;
   team_id?: string;
-  member_id?: string;
-  submission_id?: string;
   type: NotificationType;
   title: string;
   message: string;
@@ -25,8 +23,6 @@ export interface Notification {
   id: string;
   userId: string;
   teamId?: string;
-  memberId?: string;
-  submissionId?: string;
   type: NotificationType;
   title: string;
   message: string;
@@ -38,8 +34,6 @@ export interface Notification {
 export interface CreateNotificationParams {
   userId: string;
   teamId?: string;
-  memberId?: string;
-  submissionId?: string;
   type: NotificationType;
   title: string;
   message: string;

@@ -2,14 +2,17 @@ import { supabaseServer } from "@/lib/config/supabase-server";
 import {
   CreateNotificationParams,
   NotificationType,
+  Notification,
 } from "@/lib/interface/notification";
+
+import { broadcastNotification } from "@/app/api/notifications/stream/route";
 
 export class NotificationService {
   static async createNotification(
     params: CreateNotificationParams
   ): Promise<boolean> {
     try {
-      const { error } = await supabaseServer.from("Notification").insert({
+      const notificationData = {
         user_id: params.userId,
         team_id: params.teamId || null,
         type: params.type,
@@ -18,7 +21,13 @@ export class NotificationService {
         is_read: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      });
+      };
+
+      const { data, error } = await supabaseServer
+        .from("Notification")
+        .insert(notificationData)
+        .select()
+        .single();
 
       if (error) {
         console.error("Error creating notification:", error);
@@ -28,6 +37,27 @@ export class NotificationService {
       console.log(
         `Notification created: ${params.type} for user ${params.userId}`
       );
+
+      const notification: Notification = {
+        id: data.id,
+        userId: data.user_id,
+        teamId: data.team_id,
+        type: data.type,
+        title: data.title,
+        message: data.message,
+        isRead: data.is_read,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      };
+
+      const sseSuccess = broadcastNotification(params.userId, notification);
+
+      if (sseSuccess) {
+        console.log(`✅ SSE notification sent to user ${params.userId}`);
+      } else {
+        console.log(`⚠️ User ${params.userId} not connected to SSE`);
+      }
+
       return true;
     } catch (error) {
       console.error("Failed to create notification:", error);
