@@ -14,7 +14,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge, badgeVariants } from "@/components/ui/badge";
@@ -50,6 +50,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { TeamWithDetails, TeamApproval } from "@/lib/interface/team";
 import { MemberApproval } from "@/lib/interface/teammember";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const mapApiStatusToComponentStatus = (apiStatus: TeamApproval): Status => {
   switch (apiStatus) {
@@ -119,6 +120,18 @@ export default function RegistrationTable() {
   );
   const [showReason, setShowReason] = useState(false);
   const [reason, setReason] = useState("");
+  const [filterApproved, setFilterApproved] = useState(false);
+  const [filterRejected, setFilterRejected] = useState(false);
+
+    const handleSelectAll = () => {
+      setFilterApproved(true);
+      setFilterRejected(true);
+    };
+
+  const handleApply = () => {
+    // hanya trigger re-render, logiknya ada di filteredData
+  };
+
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -286,9 +299,18 @@ export default function RegistrationTable() {
     }
   };
 
-  const filteredData = participants.filter((item) =>
-    item.team.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredData = participants.filter((item) => {
+    const matchSearch = item.team.toLowerCase().includes(search.toLowerCase());
+
+    // Kalau kedua filter false, artinya tampilkan semua
+    if (!filterApproved && !filterRejected) return matchSearch;
+
+    const matchApproved = filterApproved && item.status === "Approve";
+    const matchRejected = filterRejected && item.status === "Rejected";
+
+    return matchSearch && (matchApproved || matchRejected);
+  });
+
 
   if (loading) {
     return (
@@ -345,11 +367,53 @@ export default function RegistrationTable() {
                 <Filter className="h-4 w-4 text-[#5B5B5B]" /> Filter By
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>Status</DropdownMenuItem>
-              <DropdownMenuItem>Date</DropdownMenuItem>
-              <DropdownMenuItem>Institution</DropdownMenuItem>
-            </DropdownMenuContent>
+            <DropdownMenuContent className="p-2 w-52 bg-white text-black">
+                {/* Checkbox Submitted */}
+                <div
+                  className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                  onClick={() => setFilterApproved(!filterApproved)}
+                >
+                  <Checkbox
+                    checked={filterApproved}
+                    onCheckedChange={(checked) =>
+                      setFilterApproved(checked === true)
+                    }
+                  />
+                  <span className="text-sm">Submitted</span>
+                </div>
+
+                {/* Checkbox Not Submitted */}
+                <div
+                  className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                  onClick={() => setFilterRejected(!filterRejected)}
+                >
+                  <Checkbox
+                    checked={filterRejected}
+                    onCheckedChange={(checked) =>
+                      setFilterRejected(checked === true)
+                    }
+                  />
+                  <span className="text-sm">Not Submitted</span>
+                </div>
+
+                <DropdownMenuSeparator />
+
+                {/* Action links */}
+                <div className="flex items-center justify-between px-2 py-1">
+                  <button
+                    onClick={handleSelectAll}
+                    className="text-blue-600 text-sm hover:underline"
+                  >
+                    Select all
+                  </button>
+                  <button
+                    onClick={handleApply}
+                    className="text-blue-600 text-sm hover:underline font-medium"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
