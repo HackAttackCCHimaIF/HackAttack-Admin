@@ -137,4 +137,29 @@ export class NotificationService {
       message,
     });
   }
+
+  static async createWorkshopApprovalNotification(
+    participantEmail: string,
+    participantName: string,
+    workshopName: string,
+    approved: boolean,
+    rejectMessage?: string
+  ): Promise<boolean> {
+    const type = approved
+      ? NotificationType.WORKSHOP_APPROVED
+      : NotificationType.WORKSHOP_REJECTED;
+    const title = approved
+      ? "Workshop Registration Approved! 🎉"
+      : "Workshop Registration Rejected";
+    const message = approved
+      ? `Your registration for "${workshopName}" workshop has been approved! You will receive further details via email.`
+      : `Your registration for "${workshopName}" workshop was rejected. Reason: ${rejectMessage}`;
+
+    return this.createNotification({
+      userId: participantEmail,
+      type,
+      title,
+      message,
+    });
+  }
 }

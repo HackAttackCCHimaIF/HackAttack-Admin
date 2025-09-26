@@ -1,6 +1,7 @@
 import { TeamDB, Team } from "@/lib/interface/team";
 import { UserDB, User } from "@/lib/interface/users";
 import { TeamMemberDB, TeamMember } from "@/lib/interface/teammember";
+import { WorkshopDB, Workshop } from "@/lib/interface/workshop";
 
 export function convertUserDBToUser(userDB: UserDB): User {
   return {
@@ -44,5 +45,20 @@ export function convertTeamMemberDBToTeamMember(
     updatedAt: memberDB.updated_at,
     memberRole: memberDB.member_role,
     memberApproval: memberDB.member_approval,
+  };
+}
+
+export function convertWorkshopDBToWorkshop(workshopDB: WorkshopDB): Workshop {
+  return {
+    id: workshopDB.id,
+    createdAt: workshopDB.created_at,
+    fullName: workshopDB.full_name,
+    email: workshopDB.email,
+    institution: workshopDB.institution,
+    whatsappNumber: workshopDB.whatsapp_number,
+    workshop: workshopDB.workshop,
+    paymentProofLink: workshopDB.payment_proof_link,
+    approval: workshopDB.approval,
+    rejectionMessage: workshopDB.rejection_message,
   };
 }

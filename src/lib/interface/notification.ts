@@ -5,6 +5,8 @@ export enum NotificationType {
   MEMBER_REJECTED = "member_rejected",
   SUBMISSION_APPROVED = "submission_approved",
   SUBMISSION_REJECTED = "submission_rejected",
+  WORKSHOP_APPROVED = "workshop_approved",
+  WORKSHOP_REJECTED = "workshop_rejected",
 }
 
 export interface NotificationDB {

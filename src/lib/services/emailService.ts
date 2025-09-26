@@ -1,4 +1,4 @@
-import { sendRegistrationEmail, determineBatch } from "@/lib/config/email";
+import { sendRegistrationEmail, determineBatch, sendWorkshopEmail } from "@/lib/config/email";
 
 export interface SendEmailParams {
   email: string;
@@ -7,6 +7,15 @@ export interface SendEmailParams {
   batch?: 1 | 2;
   rejectMessage?: string;
   registrationDate?: Date | string;
+}
+
+export interface SendWorkshopEmailParams {
+  email: string;
+  participantName: string;
+  workshopName: string;
+  institution: string;
+  status: "approved" | "rejected";
+  rejectMessage?: string;
 }
 
 export class EmailService {
@@ -86,6 +95,62 @@ export class EmailService {
       teamLeader,
       status,
       registrationDate,
+      rejectMessage,
+    });
+  }
+
+  static async sendWorkshopApprovalEmail(params: SendWorkshopEmailParams) {
+    const {
+      email,
+      participantName,
+      workshopName,
+      institution,
+      status,
+      rejectMessage,
+    } = params;
+
+    if (status === "rejected" && !rejectMessage) {
+      throw new Error("Reject message is required for rejected workshop emails");
+    }
+
+    return await sendWorkshopEmail({
+      email,
+      participantName,
+      workshopName,
+      institution,
+      status,
+      rejectMessage,
+    });
+  }
+
+  static async sendWorkshopSuccessEmail(
+    email: string,
+    participantName: string,
+    workshopName: string,
+    institution: string
+  ) {
+    return await this.sendWorkshopApprovalEmail({
+      email,
+      participantName,
+      workshopName,
+      institution,
+      status: "approved",
+    });
+  }
+
+  static async sendWorkshopRejectionEmail(
+    email: string,
+    participantName: string,
+    workshopName: string,
+    institution: string,
+    rejectMessage: string
+  ) {
+    return await this.sendWorkshopApprovalEmail({
+      email,
+      participantName,
+      workshopName,
+      institution,
+      status: "rejected",
       rejectMessage,
     });
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge, badgeVariants } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import {
   Search,
   Filter,
@@ -25,7 +25,6 @@ import {
   Circle,
   XCircle,
   CheckCircle,
-  Clock,
   File,
 } from "lucide-react";
 
@@ -40,87 +39,42 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { exportToExcel, formatDateForExcel } from "@/lib/utils/excelExport";
 import { toast } from "sonner";
+import { Workshop, WorkshopApproval } from "@/lib/interface/workshop";
 
-type Status = "Pending" | "Approve" | "Rejected";
-
-interface Member {
+interface WorkshopParticipant {
+  id: string;
   name: string;
   email: string;
-  role: "Team Leader" | "Member";
   institution: string;
-  team: string;
-  status: "Pending" | "Approve" | "Rejected";
+  whatsappNumber: string;
+  workshop: string;
+  paymentProofLink: string;
+  approval: WorkshopApproval;
   date: string;
-  reason?: string;
+  rejectreason?: string;
 }
 
-const initialData: Member[] = [
-  {
-    name: "Yesi Sukmawati",
-    email: "yesi.sukmawati23@gmail.com",
-    role: "Team Leader",
-    team: "Volkaholics",
-    institution: "Telkom University",
-    status: "Pending",
-    date: "15/08/2025",
-  },
-  {
-    name: "Indah Pratiwi",
-    email: "indah.pratiwi05@gmail.com",
-    role: "Member",
-    team: "Volkaholics",
-    institution: "Telkom University",
-    status: "Pending",
-    date: "15/08/2025",
-  },
-  {
-    name: "Salma Safira",
-    email: "salma.safira02@gmail.com",
-    role: "Member",
-    team: "Volkaholics",
-    institution: "Telkom University",
-    status: "Pending",
-    date: "15/08/2025",
-  },
-  {
-    name: "Daffa Hakim",
-    email: "daffa.hakim@gmail.com",
-    role: "Team Leader",
-    team: "Next Devs",
-    institution: "UI",
-    status: "Approve",
-    date: "16/08/2025",
-  },
-];
-
-const getStatusBadge = (status: Status) => {
-  switch (status) {
-    case "Pending":
+const getStatusBadge = (approval: WorkshopApproval) => {
+  switch (approval) {
+    case WorkshopApproval.Pending:
       return (
         <Badge className="bg-orange-50 rounded-full text-orange-400 font-semibold py-2">
           <Circle className="!w-3 !h-3 fill-current text-orange-400 mr-1" />
           Pending
         </Badge>
       );
-    case "Approve":
+    case WorkshopApproval.Approved:
       return (
         <Badge className="bg-green-500 rounded-full text-lime-200 font-semibold py-2">
           <Circle className="!w-3 !h-3 fill-current text-lime-200 mr-1" />
           Approved
         </Badge>
       );
-    case "Rejected":
+    case WorkshopApproval.Rejected:
       return (
         <Badge className="bg-red-600 rounded-full text-red-200 font-semibold py-2">
           <Circle className="!w-3 !h-3 fill-current text-red-200 mr-1" />
@@ -132,33 +86,94 @@ const getStatusBadge = (status: Status) => {
 
 export default function AdminWorkshopTable() {
   const [search, setSearch] = useState("");
-  const [participants, setParticipants] = useState(initialData);
+  const [participants, setParticipants] = useState<WorkshopParticipant[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [selected, setSelected] = useState<{
     index: number;
-    action: "Approve" | "Reject" | null;
+    action: "Approved" | "Rejected" | null;
   }>({ index: -1, action: null });
 
   const [showReason, setShowReason] = useState(false);
-  const [reason, setReason] = useState("");
+  const [rejectReason, setRejectReason] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
 
   const [filterPending, setFilterPending] = useState(false);
   const [filterApproved, setFilterApproved] = useState(false);
   const [filterRejected, setFilterRejected] = useState(false);
+  useEffect(() => {
+    const fetchWorkshopData = async () => {
+      try {
+        const response = await fetch("/api/workshop");
+        const result = await response.json();
 
-  const handleApprove = () => {
+        if (result.success) {
+          const transformedData: WorkshopParticipant[] = result.data.map(
+            (workshop: Workshop) => ({
+              id: workshop.id,
+              name: workshop.fullName,
+              email: workshop.email,
+              institution: workshop.institution,
+              whatsappNumber: workshop.whatsappNumber,
+              workshop: workshop.workshop,
+              paymentProofLink: workshop.paymentProofLink,
+              approval: workshop.approval,
+              date: workshop.createdAt,
+            })
+          );
+          setParticipants(transformedData);
+        } else {
+          toast.error("Failed to fetch workshop data");
+        }
+      } catch (error) {
+        console.error("Error fetching workshop data:", error);
+        toast.error("Error loading workshop data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWorkshopData();
+  }, []);
+
+  const handleApprove = async () => {
     if (selected.index !== -1) {
-      const updated = [...participants];
-      updated[selected.index].status = "Approve";
-      setParticipants(updated);
-      setSelected({ index: -1, action: null });
-      setShowSuccess(true);
+      try {
+        const participant = participants[selected.index];
+        const response = await fetch("/api/workshop", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: participant.id,
+            status: "Approved",
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          const updated = [...participants];
+          updated[selected.index].approval = WorkshopApproval.Approved;
+          setParticipants(updated);
+          setSelected({ index: -1, action: null });
+          setShowSuccess(true);
+          toast.success("Participant approved successfully");
+        } else {
+          toast.error("Failed to approve participant");
+        }
+      } catch (error) {
+        console.error("Error approving participant:", error);
+        toast.error("Error approving participant");
+      }
     }
   };
 
+  const handleApply = () => {};
+
   const handleReject = () => {
-    setShowReason(true); // buka modal alasan setelah YES
+    setShowReason(true);
   };
 
   const handleSelectAll = () => {
@@ -167,48 +182,72 @@ export default function AdminWorkshopTable() {
     setFilterRejected(true);
   };
 
-  const handleApply = () => {
-    // hanya trigger re-render, logikanya ada di filteredData
-  };
+  const handleSubmitReason = async () => {
+    if (selected.index !== -1 && rejectReason.trim()) {
+      try {
+        const participant = participants[selected.index];
+        const response = await fetch("/api/workshop", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: participant.id,
+            status: "Rejected",
+            rejectMessage: rejectReason.trim(),
+          }),
+        });
 
-  const handleSubmitReason = () => {
-    if (selected.index !== -1) {
-      const updated = [...participants];
-      updated[selected.index].status = "Rejected";
-      updated[selected.index].reason = reason;
-      setParticipants(updated);
-      setShowReason(false);
-      setReason("");
-      setSelected({ index: -1, action: null });
-      setShowSuccess(true);
+        const result = await response.json();
+
+        if (result.success) {
+          const updated = [...participants];
+          updated[selected.index].approval = WorkshopApproval.Rejected;
+          updated[selected.index].rejectreason = rejectReason.trim();
+          setParticipants(updated);
+          setSelected({ index: -1, action: null });
+          setShowReason(false);
+          setRejectReason("");
+          setShowSuccess(true);
+          toast.success("Participant rejected and email sent successfully");
+        } else {
+          toast.error("Failed to reject participant");
+        }
+      } catch (error) {
+        console.error("Error rejecting participant:", error);
+        toast.error("Error rejecting participant");
+      }
     }
   };
 
   const filteredData = participants.filter((item) => {
-    const matchesSearch = item.team
-      .toLowerCase()
-      .includes(search.toLowerCase());
+    const matchesSearch =
+      item.name.toLowerCase().includes(search.toLowerCase()) ||
+      item.email.toLowerCase().includes(search.toLowerCase()) ||
+      item.institution.toLowerCase().includes(search.toLowerCase());
 
     const matchesFilter =
-      (filterApproved && item.status === "Approve") ||
-      (filterPending && item.status === "Pending") ||
-      (!filterApproved && !filterPending);
+      (filterPending && item.approval === WorkshopApproval.Pending) ||
+      (filterApproved && item.approval === WorkshopApproval.Approved) ||
+      (filterRejected && item.approval === WorkshopApproval.Rejected) ||
+      (!filterApproved && !filterPending && !filterRejected);
 
     return matchesSearch && matchesFilter;
   });
 
   const handleExportToExcel = async () => {
     try {
-      const exportData = filteredData.map((member, index) => ({
+      const exportData = filteredData.map((participant, index) => ({
         No: index + 1,
-        Name: member.name,
-        Email: member.email,
-        Role: member.role,
-        Team: member.team,
-        Institution: member.institution,
-        Status: member.status,
-        "Registration Date": formatDateForExcel(member.date),
-        "Rejection Reason": member.reason || "-",
+        Name: participant.name,
+        Email: participant.email,
+        Institution: participant.institution,
+        "WhatsApp Number": participant.whatsappNumber,
+        Workshop: participant.workshop,
+        Status: participant.approval,
+        "Registration Date": formatDateForExcel(participant.date),
+        "Payment Proof": participant.paymentProofLink,
+        "Rejection Reason": participant.rejectreason || "-",
       }));
 
       const filename = `Workshop_Participants_${
@@ -221,6 +260,17 @@ export default function AdminWorkshopTable() {
       console.error("Export failed:", error);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="rounded-[20px] p-[2px] bg-gradient-to-r from-[#0F75BD] to-[#64BB48] h-full">
+        <div className="bg-gradient-to-t from-black to-[#575757] rounded-[18px] p-6 text-white h-full flex flex-col items-center justify-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white"></div>
+          <p className="mt-4">Loading workshop data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-[20px] p-[2px] bg-gradient-to-r from-[#0F75BD] to-[#64BB48] h-full">
@@ -249,7 +299,7 @@ export default function AdminWorkshopTable() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search"
+              placeholder="Search by name, email, or institution"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10 bg-white/10 border border-white text-white placeholder:text-gray-400"
@@ -333,9 +383,12 @@ export default function AdminWorkshopTable() {
           <Table>
             <TableHeader>
               <TableRow className="border-white/20">
-                <TableHead className="text-white">Team Name</TableHead>
+                <TableHead className="text-white">Name</TableHead>
+                <TableHead className="text-white">Email</TableHead>
                 <TableHead className="text-white">Institution</TableHead>
-                <TableHead className="text-white">Members</TableHead>
+                <TableHead className="text-white">Workshop</TableHead>
+                <TableHead className="text-white">WhatsApp</TableHead>
+                <TableHead className="text-white">Payment Proof</TableHead>
                 <TableHead className="text-white">Status</TableHead>
                 <TableHead className="text-white">Registration Date</TableHead>
                 <TableHead className="text-white">Actions</TableHead>
@@ -344,123 +397,45 @@ export default function AdminWorkshopTable() {
             <TableBody>
               {filteredData.map((row, idx) => (
                 <TableRow
-                  key={idx}
+                  key={row.id}
                   className={`border-white/10 ${
                     idx % 2 === 0 ? "bg-white/20" : ""
                   }`}
                 >
-                  <TableCell className="py-4 px-6">{row.team}</TableCell>
-                  <TableCell className="py-4 px-6">{row.institution}</TableCell>
+                  <TableCell className="py-4 px-6">{row.name}</TableCell>
+                  <TableCell className="py-4 px-6">{row.email}</TableCell>
                   <TableCell className="py-4 px-6">
-                    <Dialog>
-                      <DialogTrigger>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex items-center gap-1 bg-white/10 border-white/20 text-white"
-                        >
-                          <Eye className="h-4 w-4" /> Details ({row.name})
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="!max-w-3xl lg:!max-w-7xl !w-full rounded-2xl backdrop-blur-lg bg-gradient-to-b from-white/50 to-black/50 text-white">
-                        <DialogHeader>
-                          <DialogTitle className="text-xl font-bold">
-                            Team Members : {row.team}
-                          </DialogTitle>
-                        </DialogHeader>
-
-                        {/* List anggota tim */}
-                        <div className="flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
-                          <div className="bg-white/20 backdrop-blur-lg rounded-lg p-4 shadow-md flex flex-col">
-                            {/* Nama & Role */}
-                            <div className="flex justify-between items-start">
-                              <div className="flex flex-col items-start gap-2 w-full">
-                                <div className="flex items-start justify-between w-full">
-                                  <div>
-                                    <h3 className="font-semibold text-lg">
-                                      {row.name}
-                                    </h3>
-                                    <p className="text-sm text-white">
-                                      {row.email}
-                                    </p>
-                                  </div>
-                                  <div className="flex items-start gap-6 mt-3">
-                                    <div className="flex gap-1">
-                                      <button
-                                        className={badgeVariants({
-                                          className:
-                                            "cursor-pointer px-6 bg-[#4e4e4e]",
-                                        })}
-                                      >
-                                        <CheckCircle className="size-4" /> Yes!
-                                      </button>
-                                      <button
-                                        className={badgeVariants({
-                                          className:
-                                            "cursor-pointer px-6 bg-red-600",
-                                        })}
-                                      >
-                                        <XCircle className="size-4" /> No!
-                                      </button>
-                                    </div>
-                                    <Badge className="bg-[#FAB94F] text-white ml-auto">
-                                      <Clock />
-                                      {row.status}
-                                    </Badge>
-                                  </div>
-                                </div>
-                                <span
-                                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                    row.role === "Team Leader"
-                                      ? "bg-black text-white"
-                                      : "bg-gray-700 text-gray-200"
-                                  }`}
-                                >
-                                  {row.role}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Documents Section */}
-                            <div className="mt-4">
-                              <h4 className="font-semibold">Documents</h4>
-                              <div className="flex items-center gap-3 mt-2 flex-col p-2 bg-white/30 rounded-md min-h-[140px]">
-                                <div className="w-full flex justify-between">
-                                  <h5 className="text-xs">Link Files</h5>
-                                  <Badge className="bg-[#FFF2DD] text-[#D98634] rounded-full">
-                                    <Circle className="fill-current text-[#D98634] !size-2" />{" "}
-                                    Verification Required
-                                  </Badge>
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                  <Button
-                                    size={"sm"}
-                                    variant="outline"
-                                    className="bg-white/10 border border-white/20 text-white hover:bg-white/20 hover:text-white"
-                                  >
-                                    <Eye /> Open Document
-                                  </Button>
-                                  <Button
-                                    size={"sm"}
-                                    variant="outline"
-                                    className="bg-white/10 border border-white/20 text-white hover:bg-white/20 hover:text-white"
-                                  >
-                                    <CheckCircle /> Verify?
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                    {row.institution === "telkom"
+                      ? "Telkom University"
+                      : "Non Telkom"}
                   </TableCell>
                   <TableCell className="py-4 px-6">
-                    {getStatusBadge(row.status)}
+                    {row.workshop === "workshop1" ? "Workshop 1" : "Workshop 2"}
                   </TableCell>
-                  <TableCell className="py-4 px-6">{row.date}</TableCell>
+                  <TableCell className="py-4 px-6">
+                    {row.whatsappNumber}
+                  </TableCell>
+                  <TableCell className="py-4 px-6">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                      onClick={() =>
+                        window.open(row.paymentProofLink, "_blank")
+                      }
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      View Proof
+                    </Button>
+                  </TableCell>
+                  <TableCell className="py-4 px-6">
+                    {getStatusBadge(row.approval)}
+                  </TableCell>
+                  <TableCell className="py-4 px-6">
+                    {new Date(row.date).toLocaleDateString("en-GB")}
+                  </TableCell>
                   <TableCell className="flex gap-2 py-4 px-6 flex-col">
-                    {row.status === "Pending" ? (
+                    {row.approval === "Pending" && (
                       <>
                         {/* Approve */}
                         <AlertDialog>
@@ -468,7 +443,7 @@ export default function AdminWorkshopTable() {
                             <Button
                               size="sm"
                               onClick={() =>
-                                setSelected({ index: idx, action: "Approve" })
+                                setSelected({ index: idx, action: "Approved" })
                               }
                               className="bg-[#8B8B8B] text-white border w-[120px] border-white/20 flex items-center justify-start gap-2 rounded-full"
                             >
@@ -479,12 +454,13 @@ export default function AdminWorkshopTable() {
                           <AlertDialogContent className="backdrop-blur-lg bg-black/80 text-white">
                             <AlertDialogHeader>
                               <AlertDialogTitle className="text-lg font-bold">
-                                Are you sure you want to approve this team?
+                                Are you sure you want to approve this
+                                participant?
                               </AlertDialogTitle>
                               <AlertDialogDescription className="text-gray-300">
                                 This action will approve{" "}
                                 <span className="font-semibold">
-                                  {row.team}
+                                  {row.name}
                                 </span>
                                 .
                               </AlertDialogDescription>
@@ -509,7 +485,7 @@ export default function AdminWorkshopTable() {
                             <Button
                               size="sm"
                               onClick={() =>
-                                setSelected({ index: idx, action: "Reject" })
+                                setSelected({ index: idx, action: "Rejected" })
                               }
                               className="bg-red-600 text-white w-[120px] flex items-center justify-start rounded-full gap-2"
                             >
@@ -520,12 +496,13 @@ export default function AdminWorkshopTable() {
                           <AlertDialogContent className="backdrop-blur-lg bg-black/80 text-white">
                             <AlertDialogHeader>
                               <AlertDialogTitle className="text-lg font-bold">
-                                Are you sure you want to reject this team?
+                                Are you sure you want to reject this
+                                participant?
                               </AlertDialogTitle>
                               <AlertDialogDescription className="text-gray-300">
                                 This action will reject{" "}
                                 <span className="font-semibold">
-                                  {row.team}
+                                  {row.name}
                                 </span>
                                 .
                               </AlertDialogDescription>
@@ -544,8 +521,6 @@ export default function AdminWorkshopTable() {
                           </AlertDialogContent>
                         </AlertDialog>
                       </>
-                    ) : (
-                      getStatusBadge(row.status)
                     )}
                   </TableCell>
                 </TableRow>
@@ -554,66 +529,68 @@ export default function AdminWorkshopTable() {
           </Table>
         </div>
 
-        {/* Modal alasan reject */}
-        <Dialog open={showReason} onOpenChange={setShowReason}>
-          <DialogContent className="backdrop-blur-lg bg-black/80 text-white">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-bold">
-                Provide Rejection Reason
-              </DialogTitle>
-              {selected.index !== -1 && (
-                <p className="text-gray-300">
-                  Rejecting team:{" "}
-                  <span className="font-semibold">
-                    {participants[selected.index].team}
-                  </span>
-                </p>
-              )}
-            </DialogHeader>
-            <Textarea
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Write the reason for rejection..."
-              className="mt-3 bg-white/10 text-white border border-white/20"
-            />
-            <div className="flex justify-end gap-3 mt-4">
-              <Button
-                onClick={() => setShowReason(false)}
-                className="bg-red-600 text-white hover:bg-red-700"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSubmitReason}
-                className="bg-green-600 text-white hover:bg-green-700"
-              >
-                Submit
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Modal success */}
-        <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
-          <DialogContent className="backdrop-blur-lg bg-black/80 text-white text-center">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-bold">
-                ✅ Success!
-              </DialogTitle>
-              <p className="text-gray-300 mt-2">
-                Notification has been sent to the team&apos;s email.
-              </p>
-            </DialogHeader>
-            <div className="flex justify-center mt-4">
-              <Button
+        {/* Success Dialog */}
+        <AlertDialog open={showSuccess} onOpenChange={setShowSuccess}>
+          <AlertDialogContent className="backdrop-blur-lg bg-black/80 text-white">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-lg font-bold text-center">
+                Success!
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-gray-300 text-center">
+                The participant status has been updated successfully.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex justify-center">
+              <AlertDialogAction
                 onClick={() => setShowSuccess(false)}
-                className="bg-green-600 text-white hover:bg-green-700"
+                className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700"
               >
                 OK
-              </Button>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Reason Dialog */}
+        <AlertDialog open={showReason} onOpenChange={setShowReason}>
+          <AlertDialogContent className="backdrop-blur-lg bg-black/80 text-white">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-lg font-bold">
+                Rejection Reason
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-gray-300">
+                Please provide a reason for rejecting this participant.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="my-4">
+              <Textarea
+                placeholder="Enter rejection reason..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                className="bg-white/10 border border-white/20 text-white placeholder:text-gray-400"
+              />
             </div>
-          </DialogContent>
-        </Dialog>
+            <AlertDialogFooter className="flex gap-3 justify-center">
+              <AlertDialogCancel
+                onClick={() => {
+                  setShowReason(false);
+                  setRejectReason("");
+                  setSelected({ index: -1, action: null });
+                }}
+                className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700"
+              >
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleSubmitReason}
+                disabled={!rejectReason.trim()}
+                className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+              >
+                Submit
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

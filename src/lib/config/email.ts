@@ -24,11 +24,30 @@ const emailFailedRegistTemplate = fs.readFileSync(
   "utf8"
 );
 
+const emailWorkshopSuccessTemplate = fs.readFileSync(
+  path.join(process.cwd(), "public", "email-template", "emailWorkshopSuccess.html"),
+  "utf8"
+);
+
+const emailWorkshopRejectedTemplate = fs.readFileSync(
+  path.join(process.cwd(), "public", "email-template", "emailWorkshopRejected.html"),
+  "utf8"
+);
+
 interface EmailServiceParams {
   email: string;
   teamLeader: string;
   status: "success" | "failed";
   batch?: 1 | 2;
+  rejectMessage?: string;
+}
+
+interface WorkshopEmailParams {
+  email: string;
+  participantName: string;
+  workshopName: string;
+  institution: string;
+  status: "approved" | "rejected";
   rejectMessage?: string;
 }
 
@@ -218,5 +237,98 @@ export async function determineBatch(registrationDate: Date): Promise<1 | 2> {
     return 2;
   } else {
     return 2;
+  }
+}
+
+export async function sendWorkshopEmail({
+  email,
+  participantName,
+  workshopName,
+  institution,
+  status,
+  rejectMessage,
+}: WorkshopEmailParams) {
+  let template: string;
+  let subject: string;
+  let attachments: { filename: string; path: string; cid: string }[] = [];
+
+  const baseAttachments = [
+    {
+      filename: "header.png",
+      path: path.join(
+        process.cwd(),
+        "public",
+        "email-template",
+        "email-asset",
+        "header.png"
+      ),
+      cid: "header",
+    },
+  ];
+
+  if (status === "approved") {
+    template = emailWorkshopSuccessTemplate;
+    subject = `🎉 Workshop Registration Approved - ${workshopName}`;
+    attachments = [
+      ...baseAttachments,
+      {
+        filename: "bannersuccess.png",
+        path: path.join(
+          process.cwd(),
+          "public",
+          "email-template",
+          "email-asset",
+          "bannersuccess.png"
+        ),
+        cid: "bannersuccess",
+      },
+    ];
+  } else if (status === "rejected") {
+    template = emailWorkshopRejectedTemplate;
+    subject = `⚠️ Workshop Registration Update - ${workshopName}`;
+    attachments = [
+      ...baseAttachments,
+      {
+        filename: "bannergagal.png",
+        path: path.join(
+          process.cwd(),
+          "public",
+          "email-template",
+          "email-asset",
+          "bannergagal.png"
+        ),
+        cid: "bannergagal",
+      },
+    ];
+  } else {
+    throw new Error("Invalid status. Must be 'approved' or 'rejected'");
+  }
+
+  let htmlContent = template
+    .replace(/\{\{participantName\}\}/g, participantName)
+    .replace(/\{\{participantEmail\}\}/g, email)
+    .replace(/\{\{workshopName\}\}/g, workshopName)
+    .replace(/\{\{institution\}\}/g, institution);
+
+  if (status === "rejected" && rejectMessage) {
+    htmlContent = htmlContent.replace(/\{\{rejectMessage\}\}/g, rejectMessage);
+  }
+
+  const message = {
+    from: `HackAttack.CCIHimaIF <${process.env.EMAIL_FROM}>`,
+    to: email,
+    subject: subject,
+    html: htmlContent,
+    attachments: attachments,
+  };
+
+  const transporter = createTransporter();
+
+  try {
+    await transporter.sendMail(message);
+    return { success: true };
+  } catch (error) {
+    console.error("Error sending workshop email:", error);
+    return { success: false, error };
   }
 }
