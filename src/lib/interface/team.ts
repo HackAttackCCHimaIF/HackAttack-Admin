@@ -36,7 +36,7 @@ export interface Team {
 export interface TeamStats {
   total: number;
   pending: number;
-  accepted: number;
+  approved: number;
   rejected: number;
 }
 
