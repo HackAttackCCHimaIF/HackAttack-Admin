@@ -30,7 +30,7 @@ export async function GET() {
     const stats: TeamStats = {
       total: count || 0,
       pending,
-      accepted,
+      approved: accepted,
       rejected,
     };
 
