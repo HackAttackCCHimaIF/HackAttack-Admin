@@ -6,6 +6,7 @@ import Image from "next/image";
 import RegistrationTable from "./AdminTable";
 
 export default function RegistrationTableWrapper() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 

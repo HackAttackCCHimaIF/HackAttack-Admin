@@ -49,6 +49,8 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { exportToExcel, formatDateForExcel } from "@/lib/utils/excelExport";
+import { toast } from "sonner";
 
 type Status = "Pending" | "Approve" | "Rejected";
 
@@ -195,6 +197,31 @@ export default function AdminWorkshopTable() {
     return matchesSearch && matchesFilter;
   });
 
+  const handleExportToExcel = async () => {
+    try {
+      const exportData = filteredData.map((member, index) => ({
+        No: index + 1,
+        Name: member.name,
+        Email: member.email,
+        Role: member.role,
+        Team: member.team,
+        Institution: member.institution,
+        Status: member.status,
+        "Registration Date": formatDateForExcel(member.date),
+        "Rejection Reason": member.reason || "-",
+      }));
+
+      const filename = `Workshop_Participants_${
+        new Date().toISOString().split("T")[0]
+      }`;
+      await exportToExcel(exportData, filename, "Workshop Participants");
+      toast.success("Success Exporting data");
+    } catch (error) {
+      toast.error("Export failed. Please try again.");
+      console.error("Export failed:", error);
+    }
+  };
+
   return (
     <div className="rounded-[20px] p-[2px] bg-gradient-to-r from-[#0F75BD] to-[#64BB48] h-full">
       <div className="bg-gradient-to-t from-black to-[#575757] rounded-[18px] p-6 text-white h-full flex flex-col">
@@ -207,7 +234,10 @@ export default function AdminWorkshopTable() {
             </p>
           </div>
           <div>
-            <Button className="bg-white/10 hover:bg-white/20 text-white">
+            <Button
+              className="bg-white/10 hover:bg-white/20 text-white"
+              onClick={handleExportToExcel}
+            >
               <File className="h-4 w-4 mr-2" />
               Download by Excel (.xlsx)
             </Button>

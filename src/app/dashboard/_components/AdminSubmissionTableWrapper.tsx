@@ -6,6 +6,7 @@ import AdminSubmissionTable from "./AdminSubmissionTable";
 import Image from "next/image";
 
 export default function AdminSubmissionTableWrapper() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 

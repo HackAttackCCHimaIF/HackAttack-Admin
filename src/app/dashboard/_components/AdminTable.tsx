@@ -26,6 +26,7 @@ import {
   XCircle,
   CheckCircle,
   Clock,
+  File,
 } from "lucide-react";
 
 import {
@@ -51,6 +52,7 @@ import { TeamWithDetails, TeamApproval } from "@/lib/interface/team";
 import { MemberApproval } from "@/lib/interface/teammember";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
+import { exportToExcel, formatDateForExcel } from "@/lib/utils/excelExport";
 
 const mapApiStatusToComponentStatus = (apiStatus: TeamApproval): Status => {
   switch (apiStatus) {
@@ -115,6 +117,7 @@ export default function RegistrationTable() {
   }>({ index: -1, action: null });
   const [showSuccess, setShowSuccess] = useState(false);
   const [approvalLoading, setApprovalLoading] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [teamApprovalLoading, setTeamApprovalLoading] = useState<string | null>(
     null
   );
@@ -123,15 +126,14 @@ export default function RegistrationTable() {
   const [filterApproved, setFilterApproved] = useState(false);
   const [filterRejected, setFilterRejected] = useState(false);
 
-    const handleSelectAll = () => {
-      setFilterApproved(true);
-      setFilterRejected(true);
-    };
+  const handleSelectAll = () => {
+    setFilterApproved(true);
+    setFilterRejected(true);
+  };
 
   const handleApply = () => {
     // hanya trigger re-render, logiknya ada di filteredData
   };
-
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -149,7 +151,7 @@ export default function RegistrationTable() {
             institution: team.institution,
             members: team.memberCount,
             status: mapApiStatusToComponentStatus(team.approvalStatus),
-            date: new Date(team.createdAt).toLocaleDateString("en-GB"),
+            date: team.createdAt,
             teamData: team,
           })
         );
@@ -311,7 +313,6 @@ export default function RegistrationTable() {
     return matchSearch && (matchApproved || matchRejected);
   });
 
-
   if (loading) {
     return (
       <div className="rounded-[20px] p-[2px] bg-gradient-to-r from-[#0F75BD] to-[#64BB48] h-full">
@@ -335,15 +336,54 @@ export default function RegistrationTable() {
     );
   }
 
+  const handleExportToExcel = async () => {
+    try {
+      const exportData = filteredData.map((participant, index) => ({
+        No: index + 1,
+        "Team Name": participant.team,
+        Institution: participant.institution,
+        "Members Count": participant.members,
+        Status: participant.status,
+        "Registration Date": formatDateForExcel(participant.date),
+        "Team Leader":
+          participant.teamData?.members?.find((m) => m.isLeader === true)
+            ?.name || "-",
+        "Team Leader Email":
+          participant.teamData?.members?.find((m) => m.isLeader === true)
+            ?.email || "-",
+        "WhatsApp Number": participant.teamData?.whatsappNumber || "-",
+        "Rejection Reason": participant.reason || "-",
+      }));
+
+      const filename = `Team_Registration_${
+        new Date().toISOString().split("T")[0]
+      }`;
+      await exportToExcel(exportData, filename, "Team Registration");
+    } catch (error) {
+      console.error("Export failed:", error);
+    }
+  };
+
   return (
     <div className="rounded-[20px] p-[2px] bg-gradient-to-r from-[#0F75BD] to-[#64BB48] h-full">
       <div className="bg-gradient-to-t from-black to-[#575757] rounded-[18px] p-6 text-white h-full flex flex-col">
         {/* Header */}
-        <div className="mb-6">
-          <h2 className="text-xl font-bold">Registration Progress</h2>
-          <p className="text-sm text-gray-300">
-            Overview of Participant Registration Progress
-          </p>
+        <div className="w-full flex items-center justify-between">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold">Registration Progress</h2>
+            <p className="text-sm text-gray-300">
+              Overview of Team Registration Progress
+            </p>
+          </div>
+          <div>
+            <Button
+              className="bg-white/10 hover:bg-white/20 text-white"
+              onClick={handleExportToExcel}
+            >
+              <File className="h-4 w-4 mr-2" />
+              Download by Excel (.xlsx)
+            </Button>
+          </div>
         </div>
 
         {/* Search & Filter */}
@@ -368,52 +408,52 @@ export default function RegistrationTable() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="p-2 w-52 bg-white text-black">
-                {/* Checkbox Submitted */}
-                <div
-                  className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
-                  onClick={() => setFilterApproved(!filterApproved)}
+              {/* Checkbox Submitted */}
+              <div
+                className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                onClick={() => setFilterApproved(!filterApproved)}
+              >
+                <Checkbox
+                  checked={filterApproved}
+                  onCheckedChange={(checked) =>
+                    setFilterApproved(checked === true)
+                  }
+                />
+                <span className="text-sm">Submitted</span>
+              </div>
+
+              {/* Checkbox Not Submitted */}
+              <div
+                className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+                onClick={() => setFilterRejected(!filterRejected)}
+              >
+                <Checkbox
+                  checked={filterRejected}
+                  onCheckedChange={(checked) =>
+                    setFilterRejected(checked === true)
+                  }
+                />
+                <span className="text-sm">Not Submitted</span>
+              </div>
+
+              <DropdownMenuSeparator />
+
+              {/* Action links */}
+              <div className="flex items-center justify-between px-2 py-1">
+                <button
+                  onClick={handleSelectAll}
+                  className="text-blue-600 text-sm hover:underline"
                 >
-                  <Checkbox
-                    checked={filterApproved}
-                    onCheckedChange={(checked) =>
-                      setFilterApproved(checked === true)
-                    }
-                  />
-                  <span className="text-sm">Submitted</span>
-                </div>
-
-                {/* Checkbox Not Submitted */}
-                <div
-                  className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
-                  onClick={() => setFilterRejected(!filterRejected)}
+                  Select all
+                </button>
+                <button
+                  onClick={handleApply}
+                  className="text-blue-600 text-sm hover:underline font-medium"
                 >
-                  <Checkbox
-                    checked={filterRejected}
-                    onCheckedChange={(checked) =>
-                      setFilterRejected(checked === true)
-                    }
-                  />
-                  <span className="text-sm">Not Submitted</span>
-                </div>
-
-                <DropdownMenuSeparator />
-
-                {/* Action links */}
-                <div className="flex items-center justify-between px-2 py-1">
-                  <button
-                    onClick={handleSelectAll}
-                    className="text-blue-600 text-sm hover:underline"
-                  >
-                    Select all
-                  </button>
-                  <button
-                    onClick={handleApply}
-                    className="text-blue-600 text-sm hover:underline font-medium"
-                  >
-                    Apply
-                  </button>
-                </div>
-              </DropdownMenuContent>
+                  Apply
+                </button>
+              </div>
+            </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
@@ -606,7 +646,9 @@ export default function RegistrationTable() {
                   <TableCell className="py-4 px-6">
                     {getStatusBadge(row.status)}
                   </TableCell>
-                  <TableCell className="py-4 px-6">{row.date}</TableCell>
+                  <TableCell className="py-4 px-6">
+                    {new Date(row.date).toLocaleDateString("en-GB")}
+                  </TableCell>
                   <TableCell className="flex gap-2 py-4 px-6 flex-col">
                     {row.status === "Pending" ? (
                       <>
