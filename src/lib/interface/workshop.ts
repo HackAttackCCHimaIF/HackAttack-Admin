@@ -43,6 +43,6 @@ export interface Workshop {
 export interface WorkshopStats {
   total: number;
   pending: number;
-  accepted: number;
-  canceled: number;
+  approved: number;
+  rejected: number;
 }
