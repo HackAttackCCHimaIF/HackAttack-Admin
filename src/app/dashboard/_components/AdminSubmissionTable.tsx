@@ -193,10 +193,6 @@ export default function AdminSubmissionTable() {
     setFilterNotSubmitted(true);
   };
 
-  const handleApply = () => {
-    // hanya trigger re-render, logiknya ada di filteredData
-  };
-
   const filteredData = participants.filter((item) => {
     const matchesSearch =
       item.team?.toLowerCase().includes(search.toLowerCase()) ?? false;
@@ -302,10 +298,10 @@ export default function AdminSubmissionTable() {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="flex items-center gap-2 bg-white text-black w-full"
+                  className="bg-white/10 hover:bg-white/20 text-white border-white/20"
                 >
-                  <Filter className="h-4 w-4 text-[#5B5B5B]" />
-                  Filter By
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filter
                   <ChevronDown
                     className={`ml-auto h-4 w-4 transition-transform duration-200 ${
                       open ? "rotate-180" : "rotate-0"
@@ -314,51 +310,52 @@ export default function AdminSubmissionTable() {
                 </Button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent className="p-2 w-52 bg-white text-black">
-                {/* Checkbox Submitted */}
-                <div
-                  className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
-                  onClick={() => setFilterSubmitted(!filterSubmitted)}
-                >
-                  <Checkbox
-                    checked={filterSubmitted}
-                    onCheckedChange={(checked) =>
-                      setFilterSubmitted(checked === true)
-                    }
-                  />
-                  <span className="text-sm">Submitted</span>
-                </div>
-
-                {/* Checkbox Not Submitted */}
-                <div
-                  className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
-                  onClick={() => setFilterNotSubmitted(!filterNotSubmitted)}
-                >
-                  <Checkbox
-                    checked={filterNotSubmitted}
-                    onCheckedChange={(checked) =>
-                      setFilterNotSubmitted(checked === true)
-                    }
-                  />
-                  <span className="text-sm">Not Submitted</span>
-                </div>
-
-                <DropdownMenuSeparator />
-
-                {/* Action links */}
-                <div className="flex items-center justify-between px-2 py-1">
-                  <button
-                    onClick={handleSelectAll}
-                    className="text-blue-600 text-sm hover:underline"
-                  >
-                    Select all
-                  </button>
-                  <button
-                    onClick={handleApply}
-                    className="text-blue-600 text-sm hover:underline font-medium"
-                  >
-                    Apply
-                  </button>
+              <DropdownMenuContent className="w-56 bg-gray-800 border-gray-700">
+                <div className="p-3">
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="submitted"
+                        checked={filterSubmitted}
+                        onCheckedChange={(checked) =>
+                          setFilterSubmitted(checked as boolean)
+                        }
+                        className="border-gray-400 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                      />
+                      <label
+                        htmlFor="submitted"
+                        className="text-sm font-medium text-white cursor-pointer"
+                      >
+                        Submitted
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="not-submitted"
+                        checked={filterNotSubmitted}
+                        onCheckedChange={(checked) =>
+                          setFilterNotSubmitted(checked as boolean)
+                        }
+                        className="border-gray-400 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
+                      />
+                      <label
+                        htmlFor="not-submitted"
+                        className="text-sm font-medium text-white cursor-pointer"
+                      >
+                        Not Submitted
+                      </label>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator className="bg-gray-700 my-3" />
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleSelectAll}
+                      size="sm"
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      Select All
+                    </Button>
+                  </div>
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -170,8 +170,6 @@ export default function AdminWorkshopTable() {
     }
   };
 
-  const handleApply = () => {};
-
   const handleReject = () => {
     setShowReason(true);
   };
@@ -315,64 +313,68 @@ export default function AdminWorkshopTable() {
                 <Filter className="h-4 w-4 text-[#5B5B5B]" /> Filter By
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="p-2 w-52 bg-white text-black">
-              {/* Checkbox Approved */}
-              <div
-                className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
-                onClick={() => setFilterApproved(!filterApproved)}
-              >
-                <Checkbox
-                  checked={filterApproved}
-                  onCheckedChange={(checked) =>
-                    setFilterApproved(checked === true)
-                  }
-                />
-                <span className="text-sm">Approved</span>
-              </div>
-
-              {/* Checkbox Pending */}
-              <div
-                className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
-                onClick={() => setFilterPending(!filterPending)}
-              >
-                <Checkbox
-                  checked={filterPending}
-                  onCheckedChange={(checked) =>
-                    setFilterPending(checked === true)
-                  }
-                />
-                <span className="text-sm">Pending</span>
-              </div>
-
-              <div
-                className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
-                onClick={() => setFilterRejected(!filterRejected)}
-              >
-                <Checkbox
-                  checked={filterRejected}
-                  onCheckedChange={(checked) =>
-                    setFilterRejected(checked === true)
-                  }
-                />
-                <span className="text-sm">Rejected</span>
-              </div>
-
-              <DropdownMenuSeparator />
-
-              {/* Action links */}
-              <div className="flex items-center justify-between px-2 py-1">
-                <button
-                  onClick={handleSelectAll}
-                  className="text-blue-600 text-sm hover:underline"
-                >
-                  Select all
-                </button>
-                <button
-                  onClick={handleApply}
-                  className="text-blue-600 text-sm hover:underline font-medium"
-                >
-                  Apply
-                </button>
+            <DropdownMenuContent className="w-56 bg-gray-800 border-gray-700">
+              <div className="p-3">
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="approved"
+                      checked={filterApproved}
+                      onCheckedChange={(checked) =>
+                        setFilterApproved(checked as boolean)
+                      }
+                      className="border-gray-400 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                    />
+                    <label
+                      htmlFor="approved"
+                      className="text-sm font-medium text-white cursor-pointer"
+                    >
+                      Approved
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="pending"
+                      checked={filterPending}
+                      onCheckedChange={(checked) =>
+                        setFilterPending(checked as boolean)
+                      }
+                      className="border-gray-400 data-[state=checked]:bg-orange-600 data-[state=checked]:border-orange-600"
+                    />
+                    <label
+                      htmlFor="pending"
+                      className="text-sm font-medium text-white cursor-pointer"
+                    >
+                      Pending
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="rejected"
+                      checked={filterRejected}
+                      onCheckedChange={(checked) =>
+                        setFilterRejected(checked as boolean)
+                      }
+                      className="border-gray-400 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
+                    />
+                    <label
+                      htmlFor="rejected"
+                      className="text-sm font-medium text-white cursor-pointer"
+                    >
+                      Rejected
+                    </label>
+                  </div>
+                </div>
+                <DropdownMenuSeparator className="bg-gray-700 my-3" />
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleSelectAll}
+                    size="sm"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Select All
+                  </Button>
+                </div>
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
