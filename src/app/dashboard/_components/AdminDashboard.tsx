@@ -38,7 +38,7 @@ const AdminDashboard = ({ children }: { children: React.ReactNode }) => {
   const [stats, setStats] = useState<TeamStats>({
     total: 0,
     pending: 0,
-    accepted: 0,
+    approved: 0,
     rejected: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -81,8 +81,8 @@ const AdminDashboard = ({ children }: { children: React.ReactNode }) => {
           loading={loading}
         />
         <StatCard
-          title="Accepted"
-          value={stats.accepted}
+          title="Approved"
+          value={stats.approved}
           icon={<CheckCircle className="text-white w-6 h-6" />}
           loading={loading}
         />
