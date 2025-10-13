@@ -25,6 +25,7 @@ function AuthConfirmContent() {
           });
 
           if (error) {
+            console.log("Error verifying OTP:", error.message);
             router.push("/auth/auth-code-error");
             return;
           }
@@ -35,12 +36,14 @@ function AuthConfirmContent() {
 
             router.push("/dashboard/admin");
           } else {
+            console.log("User not found in session");
             router.push("/auth/auth-code-error");
           }
         } else {
           const { data, error } = await supabase.auth.getSession();
 
           if (error) {
+            console.log("Error fetching session:", error.message);
             router.push("/auth/auth-code-error");
             return;
           }
@@ -49,10 +52,12 @@ function AuthConfirmContent() {
             setUser(data.session.user);
             router.push("/dashboard/admin");
           } else {
+            console.log("User not found in session after fetching");
             router.push("/auth/auth-code-error");
           }
         }
       } catch {
+        console.log("Unexpected error in auth confirm process");
         router.push("/auth/auth-code-error");
       }
     };

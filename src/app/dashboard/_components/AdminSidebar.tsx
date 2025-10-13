@@ -2,30 +2,101 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, LogOut, Menu, X, LogIn, UserPlus, UserCog, Camera } from "lucide-react";
+import { FileText, LogOut, Menu, X, UserCog, Camera } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utility/utils";
-import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
 
 interface SidebarProps {
   isLoggedIn: boolean;
   onSignOut: () => void;
 }
 
-export default function AdminSidebar({ isLoggedIn, onSignOut }: SidebarProps) {
+export default function AdminSidebar({ onSignOut }: SidebarProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const menuItems = [
-    { label: "Registration", href: "/dashboard/admin", icon: <UserCog size={18} className="fill-current text-white" fill="white"/> },
-    { label: "Submission", href: "/dashboard/admin/submission", icon: <FileText size={18} /> },
-    { label: "Workshop", href: "/dashboard/admin/workshop", icon: <Camera size={18} /> },
+    {
+      label: "Registration",
+      href: "/dashboard/admin",
+      icon: (
+        <UserCog size={18} className="fill-current text-white" fill="white" />
+      ),
+    },
+    {
+      label: "Submission",
+      href: "/dashboard/admin/submission",
+      icon: <FileText size={18} />,
+    },
+    {
+      label: "Workshop",
+      href: "/dashboard/admin/workshop",
+      icon: <Camera size={18} />,
+    },
   ];
+
+  const handleLogoutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleConfirmLogout = () => {
+    setShowLogoutConfirm(false);
+    onSignOut();
+  };
+
+  const handleCancelLogout = () => {
+    setShowLogoutConfirm(false);
+  };
 
   return (
     <>
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleCancelLogout}
+            >
+              <motion.div
+                className="bg-gradient-to-t from-black to-gray-800 border border-gray-600 rounded-xl p-6 max-w-sm mx-4 text-white"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <LogOut className="text-red-500" size={24} />
+                  <h3 className="text-lg font-semibold">Confirm Logout</h3>
+                </div>
+                <p className="text-gray-300 mb-6">
+                  Are you sure you want to sign out?.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleCancelLogout}
+                    className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmLogout}
+                    className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg transition"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Mobile toggle button */}
       <div className="md:hidden fixed top-4 left-4 z-50 w-full">
         <button
@@ -46,7 +117,13 @@ export default function AdminSidebar({ isLoggedIn, onSignOut }: SidebarProps) {
         {/* Logo & Navigation */}
         <div className="flex flex-col h-full items-start pt-12 gap-12 text-white text-xl font-bold">
           <div className="flex flex-row items-center px-6">
-            <Image src="/icons/logo.svg" alt="Logo" className="w-9 h-9" width={36} height={36} />
+            <Image
+              src="/icons/logo.svg"
+              alt="Logo"
+              className="w-9 h-9"
+              width={36}
+              height={36}
+            />
             <div className="leading-none ml-2">
               <p>HACKATTACK</p>
               <p className="">2025 Admin</p>
@@ -55,69 +132,53 @@ export default function AdminSidebar({ isLoggedIn, onSignOut }: SidebarProps) {
 
           <nav className="flex flex-col gap-3">
             {menuItems.map((item) => (
-                <a
+              <a
                 key={item.label}
                 href={item.href}
                 className={`flex items-center gap-3 p-3 pb-2 pl-6 rounded-lg text-gray-300 hover:text-white relative transition
-                    ${pathname === item.href ? "text-white font-semibold" : ""}`}
-                >
+                    ${
+                      pathname === item.href ? "text-white font-semibold" : ""
+                    }`}
+              >
                 {pathname === item.href && (
-                    <div className="absolute left-0 top-0 h-full w-2 bg-[#0F75BD] rounded-md"></div>
+                  <div className="absolute left-0 top-0 h-full w-2 bg-[#0F75BD] rounded-md"></div>
                 )}
                 <div
-                    className={cn(
+                  className={cn(
                     "flex items-center gap-3 px-4 py-1 w-full transition",
                     pathname === item.href
-                        ? "bg-gradient-to-r from-[#0F75BD] to-white/20"
-                        : ""
-                    )}
+                      ? "bg-gradient-to-r from-[#0F75BD] to-white/20"
+                      : ""
+                  )}
                 >
-                    <div
+                  <div
                     className={cn(
-                        "text-white p-2 rounded-full",
-                        pathname === item.href
+                      "text-white p-2 rounded-full",
+                      pathname === item.href
                         ? "bg-[radial-gradient(circle_at_center,#0F75BD_0%,#97B3D9_50%,#5579AB_100%)]"
                         : "bg-white/10"
                     )}
-                    >
+                  >
                     {item.icon}
-                    </div>
-                    <span>{item.label}</span>
+                  </div>
+                  <span>{item.label}</span>
                 </div>
-                </a>
+              </a>
             ))}
-            </nav>
-
+          </nav>
         </div>
 
         {/* Bottom Section */}
         <div className="p-6 flex flex-col gap-3">
-          {isLoggedIn ? (
+          <div className="border border-gray-600 rounded-lg p-3 bg-white/5 hover:bg-white/10 transition-colors">
             <button
-              onClick={onSignOut}
-              className="flex items-center gap-2 text-gray-400 hover:text-red-500 transition"
+              onClick={handleLogoutClick}
+              className="flex items-center gap-2 text-gray-400 hover:text-red-500 transition w-full justify-center"
             >
               <LogOut size={20} />
               <span>Sign Out</span>
             </button>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                className={buttonVariants({className: "bg-white/50 hover:bg-white/60 !px-4 !py-6"})}
-              >
-                <LogIn size={18} />
-                <span>Login as Admin</span>
-              </Link>
-              <Link
-                href="/register"
-                className={buttonVariants({className: "bg-white/10 hover:bg-white/20 text-white !px-4 !py-6"})}
-              >
-                <UserPlus size={18} />
-                <span>Register as Admin</span>
-              </Link>
-            </>
-          )}
+          </div>
         </div>
       </motion.aside>
 
@@ -142,10 +203,18 @@ export default function AdminSidebar({ isLoggedIn, onSignOut }: SidebarProps) {
             >
               <div className="flex justify-between items-center px-6 py-4">
                 <div className="flex items-center gap-2 font-bold">
-                  <Image src="/icons/logo.svg" alt="Logo" width={36} height={36} />
+                  <Image
+                    src="/icons/logo.svg"
+                    alt="Logo"
+                    width={36}
+                    height={36}
+                  />
                   <span>HACKATTACK</span>
                 </div>
-                <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/20 rounded-lg">
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-2 hover:bg-white/20 rounded-lg"
+                >
                   <X size={24} />
                 </button>
               </div>
@@ -157,7 +226,11 @@ export default function AdminSidebar({ isLoggedIn, onSignOut }: SidebarProps) {
                     href={item.href}
                     onClick={() => setIsOpen(false)}
                     className={`flex items-center gap-3 p-3 rounded-lg text-gray-300 hover:text-white relative transition
-                      ${pathname === item.href ? "text-pink-500 font-semibold" : ""}`}
+                      ${
+                        pathname === item.href
+                          ? "text-pink-500 font-semibold"
+                          : ""
+                      }`}
                   >
                     {pathname === item.href && (
                       <div className="absolute left-0 top-0 h-full w-1 bg-pink-500 rounded-r-md"></div>
@@ -168,33 +241,17 @@ export default function AdminSidebar({ isLoggedIn, onSignOut }: SidebarProps) {
                 ))}
               </nav>
 
+              {/* Mobile Bottom Section - Always show logout */}
               <div className="p-6 flex flex-col gap-3">
-                {isLoggedIn ? (
+                <div className="border border-gray-600 rounded-lg p-3 bg-white/5 hover:bg-white/10 transition-colors">
                   <button
-                    onClick={onSignOut}
-                    className="flex items-center gap-2 text-gray-400 hover:text-red-500 transition"
+                    onClick={handleLogoutClick}
+                    className="flex items-center gap-2 text-gray-400 hover:text-red-500 transition w-full justify-center"
                   >
                     <LogOut size={20} />
                     <span>Sign Out</span>
                   </button>
-                ) : (
-                  <>
-                    <a
-                      href="/sign-in"
-                      className="flex items-center gap-2 bg-white/50 hover:bg-white/60 px-4 py-2 rounded-lg transition"
-                    >
-                      <LogIn size={18} />
-                      <span>Login</span>
-                    </a>
-                    <a
-                      href="/sign-up"
-                      className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition"
-                    >
-                      <UserPlus size={18} />
-                      <span>Register</span>
-                    </a>
-                  </>
-                )}
+                </div>
               </div>
             </motion.aside>
           </>
