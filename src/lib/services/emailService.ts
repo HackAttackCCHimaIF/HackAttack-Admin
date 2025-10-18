@@ -1,4 +1,9 @@
-import { sendRegistrationEmail, determineBatch, sendWorkshopEmail } from "@/lib/config/email";
+import {
+  sendRegistrationEmail,
+  determineBatch,
+  sendWorkshopEmail,
+} from "@/lib/config/email";
+import { createTransport } from "nodemailer";
 
 export interface SendEmailParams {
   email: string;
@@ -16,6 +21,12 @@ export interface SendWorkshopEmailParams {
   institution: string;
   status: "approved" | "rejected";
   rejectMessage?: string;
+}
+
+export interface SendMagicLinkEmailParams {
+  email: string;
+  token: string;
+  adminName?: string;
 }
 
 export class EmailService {
@@ -110,7 +121,9 @@ export class EmailService {
     } = params;
 
     if (status === "rejected" && !rejectMessage) {
-      throw new Error("Reject message is required for rejected workshop emails");
+      throw new Error(
+        "Reject message is required for rejected workshop emails"
+      );
     }
 
     return await sendWorkshopEmail({
@@ -153,5 +166,50 @@ export class EmailService {
       status: "rejected",
       rejectMessage,
     });
+  }
+
+  static async sendMagicLinkEmail(params: SendMagicLinkEmailParams) {
+    const { email, token } = params;
+
+    const magicLinkUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/confirm?token=${token}`;
+
+    const emailHtml = `
+      <h2>HackAttack 2025 Admin Confirmation</h2>
+      
+      <p>Click the following link to continue to your admin account:</p>
+      <p><a href="${magicLinkUrl}">Sign In</a></p>
+      
+      <p>For security concern, don't share this link with anyone! This link will expire in 15 minutes and can only be used once.</p>
+      <p>Ignore this email if it's not you.</p>
+    `;
+
+    const transporter = createTransport({
+      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 587,
+      auth: {
+        user: process.env.EMAIL_FROM,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_FROM,
+      to: email,
+      subject: "Admin Login - HackAttack 2025",
+      html: emailHtml,
+    };
+
+    try {
+      const result = await transporter.sendMail(mailOptions);
+      console.log(`Magic link email sent to ${email}:`, result.messageId);
+      return { success: true, messageId: result.messageId };
+    } catch (error) {
+      console.error("Failed to send magic link email:", error);
+      throw new Error("Failed to send magic link email");
+    }
   }
 }

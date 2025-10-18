@@ -94,10 +94,34 @@ export function useAuth() {
     }
   };
 
+  const sendMagicLink = async (email: string) => {
+    try {
+      const response = await fetch("/api/auth/send-magic-link", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send magic link");
+      }
+
+      return { success: true, message: data.message };
+    } catch (error) {
+      console.error("Send magic link error:", error);
+      throw error;
+    }
+  };
+
   return {
     user,
     loading,
     signOut: handleSignOut,
+    sendMagicLink,
     isAuthenticated: !!user,
   };
 }

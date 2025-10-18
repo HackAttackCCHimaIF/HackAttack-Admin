@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/config/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,31 +8,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const { sendMagicLink } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${
-            window.location.origin
-          }/auth/confirm?next=${encodeURIComponent("/dashboard/admin")}`,
-        },
-      });
+      const result = await sendMagicLink(email);
 
-      if (otpError) {
-        toast.error("Failed to send verification email: " + otpError.message);
-        return;
+      if (result.success) {
+        toast.success("Magic link sent! Please check your email.");
+      } else {
+        toast.error(result.message || "Failed to send magic link");
       }
-
-      toast.success("Verification email sent. Please check your inbox.");
     } catch (error) {
       console.error("Login error:", error);
       toast.error("An unexpected error occurred");
