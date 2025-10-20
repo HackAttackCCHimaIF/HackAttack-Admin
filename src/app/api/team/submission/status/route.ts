@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/config/supabase-server";
 import { SubmissionStatus } from "@/lib/interface/submission";
 import { NotificationService } from "@/lib/services/notificationService";
+import { HistoryService } from "@/lib/services/historyService";
+import { cookies } from "next/headers";
 
 export async function PUT(request: NextRequest) {
   try {
@@ -22,10 +24,29 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get("admin_session")?.value;
+
+    if (!sessionToken) {
+      return NextResponse.json({ user: null }, { status: 200 });
+    }
+
+    const { data: sessionData, error: sessionError } = await supabaseServer
+      .from("admin_sessions")
+      .select("admin_email, expires_at")
+      .eq("session_token", sessionToken)
+      .single();
+
+    if (sessionError || !sessionData) {
+      return NextResponse.json({ user: null }, { status: 200 });
+    }
+
+    const adminEmail = sessionData.admin_email;
+
     const { data: submissionData, error: fetchSubmissionError } =
       await supabaseServer
         .from("Submission")
-        .select("id, team_id")
+        .select("id, team_id, status")
         .eq("id", submissionId)
         .single();
 
@@ -36,6 +57,8 @@ export async function PUT(request: NextRequest) {
         { status: 404 }
       );
     }
+
+    const oldStatus = submissionData.status;
 
     const { data: teamData, error: fetchTeamError } = await supabaseServer
       .from("Team")
@@ -65,6 +88,22 @@ export async function PUT(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Record admin action in history
+    const action =
+      status === SubmissionStatus.Valid
+        ? "approve"
+        : status === SubmissionStatus.Invalid
+        ? "reject"
+        : "reset";
+    await HistoryService.recordAction(
+      adminEmail,
+      action,
+      oldStatus,
+      status,
+      "submission",
+      submissionId
+    );
 
     let notificationSent = false;
     try {

@@ -10,11 +10,28 @@ const DashboardAdminLayout = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
+    console.log(
+      "Layout useEffect - loading:",
+      loading,
+      "isAuthenticated:",
+      isAuthenticated,
+      "user:",
+      user
+    );
+
     if (!loading && !isAuthenticated) {
-      console.log("User not authenticated, redirecting to login");
-      router.push("/");
+      const timer = setTimeout(() => {
+        if (!isAuthenticated) {
+          console.log(
+            "User not authenticated after delay, redirecting to login"
+          );
+          router.push("/");
+        }
+      }, 100);
+
+      return () => clearTimeout(timer);
     }
-  }, [loading, isAuthenticated, router]);
+  }, [loading, isAuthenticated, router, user]);
 
   if (loading) {
     return (

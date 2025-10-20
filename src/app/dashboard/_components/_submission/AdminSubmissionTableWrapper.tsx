@@ -2,20 +2,31 @@
 
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import AdminSubmissionTable from "./AdminSubmissionTable";
 import Image from "next/image";
-import RegistrationTable from "./AdminTable";
 
-export default function RegistrationTableWrapper() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function AdminSubmissionTableWrapper() {
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoaded(true);
-    }, 500);
+    const loadData = async () => {
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    return () => clearTimeout(timer);
+        setLoaded(true);
+      } catch (error) {
+        if (error instanceof Error) {
+          setError(`Failed to load submission data: ${error.message}`);
+        } else {
+          setError(
+            "An unexpected error occurred while loading submission data. Please try again."
+          );
+        }
+      }
+    };
+
+    loadData();
   }, []);
 
   if (error) {
@@ -86,5 +97,5 @@ export default function RegistrationTableWrapper() {
     );
   }
 
-  return <RegistrationTable />;
+  return <AdminSubmissionTable />;
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { supabaseServer } from "@/lib/config/supabase-server";
 
 const ipRequestMap = new Map<string, number[]>();
 
@@ -51,85 +51,34 @@ export async function middleware(req: NextRequest) {
 
   console.log(`Checking authentication for: ${pathname}`);
 
-  // Authentication check for ALL non-public routes
-  let response = NextResponse.next({
-    request: {
-      headers: req.headers,
-    },
-  });
+  let adminEmail = "unknown@admin.com";
 
-  try {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return req.cookies.get(name)?.value;
-          },
-          set(name: string, value: string, options) {
-            req.cookies.set({
-              name,
-              value,
-              ...options,
-            });
-            response = NextResponse.next({
-              request: {
-                headers: req.headers,
-              },
-            });
-            response.cookies.set({
-              name,
-              value,
-              ...options,
-            });
-          },
-          remove(name: string, options) {
-            req.cookies.set({
-              name,
-              value: "",
-              ...options,
-            });
-            response = NextResponse.next({
-              request: {
-                headers: req.headers,
-              },
-            });
-            response.cookies.set({
-              name,
-              value: "",
-              ...options,
-            });
-          },
-        },
+  if (pathname.startsWith("/api/")) {
+    try {
+      const sessionToken = req.cookies.get("admin_session")?.value;
+
+      if (sessionToken) {
+        const { data: sessionData } = await supabaseServer
+          .from("admin_sessions")
+          .select("admin_email")
+          .eq("session_token", sessionToken)
+          .single();
+
+        if (sessionData?.admin_email) {
+          adminEmail = sessionData.admin_email;
+        }
       }
-    );
-
-    // Check if user is authenticated
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-
-    console.log(
-      `Auth check result - User: ${user?.email || "null"}, Error: ${
-        error?.message || "none"
-      }`
-    );
-
-    if (error || !user) {
-      console.log("No authenticated user, redirecting to login");
-      const loginUrl = new URL("/", req.url);
-      return NextResponse.redirect(loginUrl);
+    } catch (error) {
+      console.error("Error getting admin email from session:", error);
     }
-
-    console.log("User authenticated:", user.email);
-    return response;
-  } catch (error) {
-    console.error("Auth middleware error:", error);
-    const loginUrl = new URL("/", req.url);
-    return NextResponse.redirect(loginUrl);
   }
+
+  const response = NextResponse.next();
+  if (pathname.startsWith("/api/")) {
+    response.headers.set("x-admin-email", adminEmail);
+  }
+
+  return response;
 }
 
 export const config = {

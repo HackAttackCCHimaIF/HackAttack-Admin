@@ -20,7 +20,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user exists in Supabase auth by listing users and filtering by email
+    const { data: adminData, error: adminError } = await supabaseServer
+      .from("Admins")
+      .select("email")
+      .eq("email", email)
+      .single();
+
+    if (adminError || !adminData) {
+      return NextResponse.json(
+        { error: "Unauthorized: Email not authorized for admin access" },
+        { status: 403 }
+      );
+    }
+
     const { data: authUsers, error: authError } =
       await supabaseServer.auth.admin.listUsers();
 
@@ -37,13 +49,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Generate secure token
     const token = crypto.randomBytes(32).toString("hex");
 
-    // Set expiry to 15 minutes from now
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-    // Store token in database
     const { error: dbError } = await supabaseServer.from("auth_tokens").insert({
       email,
       token,
@@ -59,24 +68,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send magic link email
     try {
       await EmailService.sendMagicLinkEmail({
         email,
         token,
-        adminName: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Admin',
+        adminName:
+          user.user_metadata?.full_name || user.email?.split("@")[0] || "Admin",
       });
     } catch (emailError) {
       console.error("Email sending error:", emailError);
-      // Don't fail the request if email fails, but log it
-      // The token is still valid and can be used manually if needed
     }
 
     return NextResponse.json({
       success: true,
       message: "Magic link sent successfully",
-      // Remove this in production - only for testing
-      ...(process.env.NODE_ENV === "development" && { token }),
     });
   } catch (error) {
     console.error("Send magic link error:", error);

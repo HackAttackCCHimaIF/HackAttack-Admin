@@ -1,7 +1,7 @@
 import React from "react";
-import { AdminHeaderDashboard } from "../../_components/AdminHeaderDashboard";
-import AdminSubmissionTableWrapper from "../../_components/AdminSubmissionTableWrapper";
-import AdminSubmissionDashboard from "../../_components/AdminSubmissionDashboard";
+import { AdminHeaderDashboard } from "../../_components/_team/AdminHeaderDashboard";
+import AdminSubmissionTableWrapper from "../../_components/_submission/AdminSubmissionTableWrapper";
+import AdminSubmissionDashboard from "../../_components/_submission/AdminSubmissionDashboard";
 
 const AdminDashboardPage = () => {
   return (

@@ -18,15 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import {
-  Search,
-  Filter,
-  Eye,
-  Circle,
-  ChevronDown,
-  Loader2,
-  File,
-} from "lucide-react";
+import { Search, Filter, Eye, ChevronDown, Loader2, File } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +31,7 @@ import { SubmissionStatus } from "@/lib/interface/submission";
 import { toast } from "sonner";
 import { TeamMember } from "@/lib/interface/teammember";
 import { exportToExcel, formatDateForExcel } from "@/lib/utils/excelExport";
+import { HoverableStatus } from "@/components/ui/hoverable-status";
 
 type Status = "Submitted" | "Not Submitted";
 
@@ -71,25 +64,6 @@ interface Participant {
   submissionId?: string;
   submissionStatus?: string;
 }
-
-const getStatusBadge = (status: Status) => {
-  switch (status) {
-    case "Submitted":
-      return (
-        <Badge className="bg-green-500 rounded-full text-white font-semibold py-2">
-          <Circle className="!w-2 !h-2 mr-1 fill-current" />
-          Submitted
-        </Badge>
-      );
-    case "Not Submitted":
-      return (
-        <Badge className="bg-red-600 rounded-full text-white font-semibold py-2">
-          <Circle className="!w-2 !h-2 mr-1 fill-current" />
-          Not Submitted
-        </Badge>
-      );
-  }
-};
 
 export default function AdminSubmissionTable() {
   const [search, setSearch] = useState("");
@@ -456,7 +430,11 @@ export default function AdminSubmissionTable() {
                   </TableCell>
 
                   <TableCell className="py-4 px-6">
-                    {getStatusBadge(row.status)}
+                    <HoverableStatus
+                      status={row.status}
+                      entityId={row.submissionId || row.id}
+                      entityType="submission"
+                    />
                   </TableCell>
                   <TableCell className="py-4 px-6">
                     {" "}

@@ -2,43 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import AdminWorkshopTable from "./AdminWorkshopTable";
 import Image from "next/image";
+import RegistrationTable from "./AdminTable";
 
-export default function AdminWorkshopSuspenseWrapper() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [participants, setParticipants] = useState<any[] | null>(null);
+export default function RegistrationTableWrapper() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
-  // Simulasi fetch data
   useEffect(() => {
     const timer = setTimeout(() => {
-      const shouldFail = Math.random() < 0.3; // 30% kemungkinan gagal
-
-      if (shouldFail) {
-        setError("Oops! We couldn’t load the data");
-      } else {
-        setParticipants([
-          {
-            name: "Yesi Sukmawati",
-            email: "yesi.sukmawati23@gmail.com",
-            role: "Team Leader",
-            team: "Volkaholics",
-            institution: "Telkom University",
-            status: "Pending",
-            date: "15/08/2025",
-          },
-          {
-            name: "Daffa Hakim",
-            email: "daffa.hakim@gmail.com",
-            role: "Team Leader",
-            team: "Next Devs",
-            institution: "UI",
-            status: "Approve",
-            date: "16/08/2025",
-          },
-        ]);
-      }
+      setLoaded(true);
     }, 1500);
 
     return () => clearTimeout(timer);
@@ -47,29 +21,28 @@ export default function AdminWorkshopSuspenseWrapper() {
   if (error) {
     return (
       <div className="relative w-full flex-1 h-full flex items-center justify-center rounded-[20px] overflow-hidden bg-gradient-to-r from-[#0F75BD] to-[#64BB48]">
-
-        {/* Background hitam transparan */}
+        {/* background gradient dark */}
         <div className="absolute inset-0 bg-gradient-to-t from-black to-[#575757] opacity-90" />
 
-        {/* Tirai kiri */}
+        {/* tirai kiri */}
         <Image
-          src="/landing-page/tirai2.svg"
           width={1000}
           height={1000}
+          src="/landing-page/tirai2.svg"
           alt="tirai kiri"
           className="absolute left-0 top-0 h-full w-auto"
         />
 
-        {/* Tirai kanan */}
+        {/* tirai kanan */}
         <Image
-          src="/landing-page/tirai2knn.svg"
           width={1000}
           height={1000}
+          src="/landing-page/tirai2knn.svg"
           alt="tirai kanan"
           className="absolute right-0 top-0 h-full w-auto"
         />
 
-        {/* Konten error */}
+        {/* konten error */}
         <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-6">
           <p className="text-white text-xl font-semibold">{error}</p>
           <button
@@ -83,7 +56,7 @@ export default function AdminWorkshopSuspenseWrapper() {
     );
   }
 
-  if (!participants) {
+  if (!loaded) {
     return (
       <div className="rounded-[20px] p-[2px] bg-gradient-to-r from-[#0F75BD] to-[#64BB48] h-full">
         <div className="bg-gradient-to-t from-black to-[#575757] rounded-[18px] p-6 text-white h-full flex flex-col">
@@ -93,7 +66,7 @@ export default function AdminWorkshopSuspenseWrapper() {
             <Skeleton className="h-4 w-72 mt-2 bg-white/20 rounded-md" />
           </div>
 
-          {/* Search Skeleton */}
+          {/* Search & Filter Skeleton */}
           <div className="flex items-center gap-2 mb-6">
             <Skeleton className="h-10 flex-1 bg-white/20 rounded-md" />
             <Skeleton className="h-10 w-32 bg-white/20 rounded-md" />
@@ -113,5 +86,5 @@ export default function AdminWorkshopSuspenseWrapper() {
     );
   }
 
-  return <AdminWorkshopTable />;
+  return <RegistrationTable />;
 }

@@ -2,6 +2,7 @@ import { TeamDB, Team } from "@/lib/interface/team";
 import { UserDB, User } from "@/lib/interface/users";
 import { TeamMemberDB, TeamMember } from "@/lib/interface/teammember";
 import { WorkshopDB, Workshop } from "@/lib/interface/workshop";
+import { AdminActionHistoryDB, AdminActionHistory } from "@/lib/interface/history";
 
 export function convertUserDBToUser(userDB: UserDB): User {
   return {
@@ -60,5 +61,18 @@ export function convertWorkshopDBToWorkshop(workshopDB: WorkshopDB): Workshop {
     paymentProofLink: workshopDB.payment_proof_link,
     approval: workshopDB.approval,
     rejectionMessage: workshopDB.rejection_message,
+  };
+}
+
+export function convertHistoryDBToHistory(historyDB: AdminActionHistoryDB): AdminActionHistory {
+  return {
+    id: historyDB.id,
+    adminEmail: historyDB.admin_email,
+    action: historyDB.action,
+    oldStatus: historyDB.old_status,
+    newStatus: historyDB.new_status,
+    entityType: historyDB.entity_type,
+    entityId: historyDB.entity_id,
+    createdAt: historyDB.created_at,
   };
 }

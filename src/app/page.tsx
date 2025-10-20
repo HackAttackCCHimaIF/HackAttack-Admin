@@ -28,8 +28,11 @@ export default function AdminLoginPage() {
         toast.error(result.message || "Failed to send magic link");
       }
     } catch (error) {
-      console.error("Login error:", error);
-      toast.error("An unexpected error occurred");
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     } finally {
       setLoading(false);
     }

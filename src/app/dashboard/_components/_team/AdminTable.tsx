@@ -53,6 +53,7 @@ import { MemberApproval } from "@/lib/interface/teammember";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { exportToExcel, formatDateForExcel } from "@/lib/utils/excelExport";
+import { HoverableStatus } from "@/components/ui/hoverable-status";
 
 const mapApiStatusToComponentStatus = (apiStatus: TeamApproval): Status => {
   switch (apiStatus) {
@@ -79,32 +80,6 @@ interface Participant {
   reason?: string;
   teamData?: TeamWithDetails;
 }
-
-const getStatusBadge = (status: Status) => {
-  switch (status) {
-    case "Pending":
-      return (
-        <Badge className="bg-orange-50 rounded-full text-orange-400 font-semibold py-2">
-          <Circle className="!w-3 !h-3 fill-current text-orange-400 mr-1" />
-          Pending
-        </Badge>
-      );
-    case "Approve":
-      return (
-        <Badge className="bg-green-500 rounded-full text-lime-200 font-semibold py-2">
-          <Circle className="!w-3 !h-3 fill-current text-lime-200 mr-1" />
-          Approved
-        </Badge>
-      );
-    case "Rejected":
-      return (
-        <Badge className="bg-red-600 rounded-full text-red-200 font-semibold py-2">
-          <Circle className="!w-3 !h-3 fill-current text-red-200 mr-1" />
-          Rejected
-        </Badge>
-      );
-  }
-};
 
 export default function RegistrationTable() {
   const [search, setSearch] = useState("");
@@ -662,7 +637,11 @@ export default function RegistrationTable() {
                     </Dialog>
                   </TableCell>
                   <TableCell className="py-4 px-6">
-                    {getStatusBadge(row.status)}
+                    <HoverableStatus
+                      status={row.status}
+                      entityId={row.id}
+                      entityType="team"
+                    />
                   </TableCell>
                   <TableCell className="py-4 px-6">
                     {new Date(row.date).toLocaleDateString("en-GB")}
@@ -753,7 +732,11 @@ export default function RegistrationTable() {
                         </AlertDialog>
                       </>
                     ) : (
-                      getStatusBadge(row.status)
+                      <HoverableStatus
+                        status={row.status}
+                        entityId={row.id}
+                        entityType="team"
+                      />
                     )}
                   </TableCell>
                 </TableRow>

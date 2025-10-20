@@ -17,16 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import {
-  Search,
-  Filter,
-  Eye,
-  Circle,
-  XCircle,
-  CheckCircle,
-  File,
-} from "lucide-react";
+import { Search, Filter, Eye, XCircle, CheckCircle, File } from "lucide-react";
 
 import {
   AlertDialog,
@@ -44,6 +35,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { exportToExcel, formatDateForExcel } from "@/lib/utils/excelExport";
 import { toast } from "sonner";
 import { Workshop, WorkshopApproval } from "@/lib/interface/workshop";
+import { HoverableStatus } from "@/components/ui/hoverable-status";
 
 interface WorkshopParticipant {
   id: string;
@@ -57,32 +49,6 @@ interface WorkshopParticipant {
   date: string;
   rejectreason?: string;
 }
-
-const getStatusBadge = (approval: WorkshopApproval) => {
-  switch (approval) {
-    case WorkshopApproval.Pending:
-      return (
-        <Badge className="bg-orange-50 rounded-full text-orange-400 font-semibold py-2">
-          <Circle className="!w-3 !h-3 fill-current text-orange-400 mr-1" />
-          Pending
-        </Badge>
-      );
-    case WorkshopApproval.Approved:
-      return (
-        <Badge className="bg-green-500 rounded-full text-lime-200 font-semibold py-2">
-          <Circle className="!w-3 !h-3 fill-current text-lime-200 mr-1" />
-          Approved
-        </Badge>
-      );
-    case WorkshopApproval.Rejected:
-      return (
-        <Badge className="bg-red-600 rounded-full text-red-200 font-semibold py-2">
-          <Circle className="!w-3 !h-3 fill-current text-red-200 mr-1" />
-          Rejected
-        </Badge>
-      );
-  }
-};
 
 export default function AdminWorkshopTable() {
   const [search, setSearch] = useState("");
@@ -431,7 +397,11 @@ export default function AdminWorkshopTable() {
                     </Button>
                   </TableCell>
                   <TableCell className="py-4 px-6">
-                    {getStatusBadge(row.approval)}
+                    <HoverableStatus
+                      status={row.approval}
+                      entityId={row.id}
+                      entityType="workshop"
+                    />
                   </TableCell>
                   <TableCell className="py-4 px-6">
                     {new Date(row.date).toLocaleDateString("en-GB")}

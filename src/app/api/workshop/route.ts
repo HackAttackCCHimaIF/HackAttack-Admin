@@ -4,6 +4,8 @@ import { WorkshopDB } from "@/lib/interface/workshop";
 import { convertWorkshopDBToWorkshop } from "@/lib/utility/typeconverter";
 import { EmailService } from "@/lib/services/emailService";
 import { NotificationService } from "@/lib/services/notificationService";
+import { HistoryService } from "@/lib/services/historyService";
+import { cookies } from "next/headers";
 
 export async function GET() {
   try {
@@ -42,6 +44,25 @@ export async function PATCH(request: Request) {
   try {
     const { id, status, rejectMessage } = await request.json();
 
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get("admin_session")?.value;
+
+    if (!sessionToken) {
+      return NextResponse.json({ user: null }, { status: 200 });
+    }
+
+    const { data: sessionData, error: sessionError } = await supabaseServer
+      .from("admin_sessions")
+      .select("admin_email, expires_at")
+      .eq("session_token", sessionToken)
+      .single();
+
+    if (sessionError || !sessionData) {
+      return NextResponse.json({ user: null }, { status: 200 });
+    }
+
+    const adminEmail = sessionData.admin_email;
+
     if (!id || !status) {
       return NextResponse.json(
         { error: "Missing required fields: id and status" },
@@ -75,6 +96,7 @@ export async function PATCH(request: Request) {
       );
     }
 
+    const oldStatus = currentWorkshop.approval;
     const updateData: Partial<WorkshopDB> = {
       approval: status,
     };
@@ -93,6 +115,22 @@ export async function PATCH(request: Request) {
         { status: 500 }
       );
     }
+
+    // Record admin action in history
+    const action =
+      status === "Approved"
+        ? "approve"
+        : status === "Rejected"
+        ? "reject"
+        : "reset";
+    await HistoryService.recordAction(
+      adminEmail,
+      action,
+      oldStatus,
+      status,
+      "workshop",
+      id
+    );
 
     const updatedWorkshop = convertWorkshopDBToWorkshop(data);
 

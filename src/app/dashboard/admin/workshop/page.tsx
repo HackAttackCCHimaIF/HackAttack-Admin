@@ -1,7 +1,7 @@
 import React from "react";
-import { AdminHeaderDashboard } from "../../_components/AdminHeaderDashboard";
-import AdminWorkshopSuspenseWrapper from "../../_components/AdminSuspenseWrapper";
-import AdminWorkshopDashboard from "../../_components/AdminWorkshopDashboard";
+import { AdminHeaderDashboard } from "../../_components/_team/AdminHeaderDashboard";
+import AdminWorkshopSuspenseWrapper from "../../_components/_workshop/AdminSuspenseWrapper";
+import AdminWorkshopDashboard from "../../_components/_workshop/AdminWorkshopDashboard";
 
 const AdminDashboardPage = () => {
   return (

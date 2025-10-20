@@ -3,10 +3,31 @@ import { supabaseServer } from "@/lib/config/supabase-server";
 import { TeamApproval } from "@/lib/interface/team";
 import { EmailService } from "@/lib/services/emailService";
 import { NotificationService } from "@/lib/services/notificationService";
+import { HistoryService } from "@/lib/services/historyService";
+import { cookies } from "next/headers";
 
 export async function PUT(request: NextRequest) {
   try {
     const { teamId, approval, rejectMessage } = await request.json();
+
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get("admin_session")?.value;
+
+    if (!sessionToken) {
+      return NextResponse.json({ user: null }, { status: 200 });
+    }
+
+    const { data: sessionData, error: sessionError } = await supabaseServer
+      .from("admin_sessions")
+      .select("admin_email, expires_at")
+      .eq("session_token", sessionToken)
+      .single();
+
+    if (sessionError || !sessionData) {
+      return NextResponse.json({ user: null }, { status: 200 });
+    }
+
+    const adminEmail = sessionData.admin_email;
 
     if (!teamId || !approval) {
       return NextResponse.json(
@@ -24,7 +45,7 @@ export async function PUT(request: NextRequest) {
 
     const { data: teamData, error: fetchTeamError } = await supabaseServer
       .from("Team")
-      .select("id, created_at, team_name, created_by")
+      .select("id, created_at, team_name, created_by, approvalstatus")
       .eq("id", teamId)
       .single();
 
@@ -35,6 +56,8 @@ export async function PUT(request: NextRequest) {
         { status: 404 }
       );
     }
+
+    const oldStatus = teamData.approvalstatus;
 
     const { data: leaderData, error: fetchLeaderError } = await supabaseServer
       .from("TeamMember")
@@ -102,6 +125,22 @@ export async function PUT(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Record admin action in history
+    const action =
+      approval === TeamApproval.Accepted
+        ? "approve"
+        : approval === TeamApproval.Rejected
+        ? "reject"
+        : "reset";
+    await HistoryService.recordAction(
+      adminEmail,
+      action,
+      oldStatus,
+      approval,
+      "team",
+      teamId
+    );
 
     let emailSent = false;
     try {
