@@ -3,7 +3,7 @@ import { HistoryService } from "@/lib/services/historyService";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { entityId: string } }
+  { params }: { params: Promise<{ entityId: string }> }
 ) {
   try {
     const { entityId } = await params;
