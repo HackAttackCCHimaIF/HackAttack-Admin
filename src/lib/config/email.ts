@@ -25,12 +25,22 @@ const emailFailedRegistTemplate = fs.readFileSync(
 );
 
 const emailWorkshopSuccessTemplate = fs.readFileSync(
-  path.join(process.cwd(), "public", "email-template", "emailWorkshopSuccess.html"),
+  path.join(
+    process.cwd(),
+    "public",
+    "email-template",
+    "emailWorkshopSuccess.html"
+  ),
   "utf8"
 );
 
 const emailWorkshopRejectedTemplate = fs.readFileSync(
-  path.join(process.cwd(), "public", "email-template", "emailWorkshopRejected.html"),
+  path.join(
+    process.cwd(),
+    "public",
+    "email-template",
+    "emailWorkshopRejected.html"
+  ),
   "utf8"
 );
 
@@ -227,9 +237,9 @@ export async function sendRegistrationEmail({
 export async function determineBatch(registrationDate: Date): Promise<1 | 2> {
   const regDate = new Date(registrationDate);
   const batch1Start = new Date("2025-10-27");
-  const batch1End = new Date("2025-11-1");
-  const batch2Start = new Date("2025-11-3");
-  const batch2End = new Date("2025-11-8");
+  const batch1End = new Date("2025-11-8");
+  const batch2Start = new Date("2025-11-9");
+  const batch2End = new Date("2025-11-15");
 
   if (regDate >= batch1Start && regDate <= batch1End) {
     return 1;
@@ -265,6 +275,38 @@ export async function sendWorkshopEmail({
       cid: "header",
     },
   ];
+
+  let workshopTitle = "";
+  let workshopDate = "";
+  let Benefit1 = "";
+  let Benefit2 = "";
+  let Benefit3 = "";
+
+  if (workshopName == "workshop1") {
+    workshopName =
+      "Workshop 1 🤩☺️ Hackattack 2025 – Decode the Problem: Framing Ideas into Digital Impact for Nusantara.";
+    workshopTitle =
+      "🔍 Saatnya Ikut Workshop 1 Hackattack 2025 Decode the Problem ";
+    workshopDate = "Minggu, 9 November 2025";
+    Benefit1 =
+      "Belajar teknik framing masalah yang relevan dengan kondisi nyata di Nusantara ";
+    Benefit2 =
+      "Mendapatkan panduan dari mentor dalam menyusun solusi digital yang tepat sasaran";
+    Benefit3 =
+      "Mengembangkan kemampuan berpikir kritis dan analitis untuk inovasi sosial";
+  }
+
+  if (workshopName == "workshop2") {
+    workshopName =
+      "Workshop 2 🤩☺️ Hackattack 2025 – Code the Solution: Prototyping Smart Innovations for Real-World Impact.";
+    workshopTitle =
+      "Undangan Resmi Workshop 2 Hackattack 2025 Code the Solution";
+    workshopDate = "Minggu, 23 November 2025";
+    Benefit1 = "Mengubah ide menjadi prototipe digital yang konkret";
+    Benefit2 = "Menggunakan pendekatan desain dan coding yang efisien";
+    Benefit3 =
+      "Mempelajari cara membuat solusi digital yang bisa langsung diuji di dunia nyata";
+  }
 
   if (status === "approved") {
     template = emailWorkshopSuccessTemplate;
@@ -307,8 +349,13 @@ export async function sendWorkshopEmail({
   let htmlContent = template
     .replace(/\{\{participantName\}\}/g, participantName)
     .replace(/\{\{participantEmail\}\}/g, email)
+    .replace(/\{\{workshopTitle\}\}/g, workshopTitle)
+    .replace(/\{\{workshopDate\}\}/g, workshopDate)
     .replace(/\{\{workshopName\}\}/g, workshopName)
-    .replace(/\{\{institution\}\}/g, institution);
+    .replace(/\{\{institution\}\}/g, institution)
+    .replace(/\{\{Benefit1\}\}/g, Benefit1)
+    .replace(/\{\{Benefit2\}\}/g, Benefit2)
+    .replace(/\{\{Benefit3\}\}/g, Benefit3);
 
   if (status === "rejected" && rejectMessage) {
     htmlContent = htmlContent.replace(/\{\{rejectMessage\}\}/g, rejectMessage);

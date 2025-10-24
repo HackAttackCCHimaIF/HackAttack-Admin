@@ -378,7 +378,11 @@ export default function AdminWorkshopTable() {
                       : "Non Telkom"}
                   </TableCell>
                   <TableCell className="py-4 px-6">
-                    {row.workshop === "workshop1" ? "Workshop 1" : "Workshop 2"}
+                    {row.workshop === "workshop1"
+                      ? "Workshop 1"
+                      : row.workshop === "workshop2"
+                      ? "Workshop 2"
+                      : "Workshop 1 & 2"}
                   </TableCell>
                   <TableCell className="py-4 px-6">
                     {row.whatsappNumber}

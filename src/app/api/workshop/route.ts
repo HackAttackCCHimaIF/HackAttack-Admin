@@ -137,24 +137,47 @@ export async function PATCH(request: Request) {
     let emailSent = false;
     try {
       if (status === "Approved") {
-        await EmailService.sendWorkshopSuccessEmail(
-          currentWorkshop.email,
-          currentWorkshop.full_name,
-          currentWorkshop.workshop,
-          currentWorkshop.institution
-        );
-        console.log(`Workshop approval email sent to ${currentWorkshop.email}`);
-        emailSent = true;
+        if (currentWorkshop.workshop === "workshop1&2") {
+          const result = await EmailService.sendBothWorkshopsSuccessEmail(
+            currentWorkshop.email,
+            currentWorkshop.full_name,
+            currentWorkshop.institution
+          );
+          console.log(
+            `Workshop 1 & 2 approvals emails sent to ${currentWorkshop.email}:`,
+            {
+              workshop1: result.workshop1.success ? "✅" : "❌",
+              workshop2: result.workshop2.success ? "✅" : "❌",
+            }
+          );
+          emailSent = result.overallSuccess;
+        } else {
+          await EmailService.sendWorkshopSuccessEmail(
+            currentWorkshop.email,
+            currentWorkshop.full_name,
+            currentWorkshop.workshop,
+            currentWorkshop.institution
+          );
+          console.log(
+            `Workshop approval email sent to ${currentWorkshop.email}`
+          );
+          emailSent = true;
+        }
       } else if (status === "Rejected") {
+        const workshopToReject =
+          currentWorkshop.workshop === "workshop1&2"
+            ? "workshop1"
+            : currentWorkshop.workshop;
+
         await EmailService.sendWorkshopRejectionEmail(
           currentWorkshop.email,
           currentWorkshop.full_name,
-          currentWorkshop.workshop,
+          workshopToReject,
           currentWorkshop.institution,
           rejectMessage
         );
         console.log(
-          `Workshop rejection email sent to ${currentWorkshop.email}`
+          `Workshop rejection email sent to ${currentWorkshop.email} for ${workshopToReject}`
         );
         emailSent = true;
       }

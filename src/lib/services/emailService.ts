@@ -126,6 +126,9 @@ export class EmailService {
       );
     }
 
+    if (workshopName === "workshop1") {
+    }
+
     return await sendWorkshopEmail({
       email,
       participantName,
@@ -166,6 +169,90 @@ export class EmailService {
       status: "rejected",
       rejectMessage,
     });
+  }
+
+  static async sendBothWorkshopsEmail(
+    email: string,
+    participantName: string,
+    institution: string,
+    status: "approved" | "rejected",
+    rejectMessage?: string
+  ) {
+    if (status === "rejected" && !rejectMessage) {
+      throw new Error(
+        "Reject message is required for rejected workshop emails"
+      );
+    }
+
+    const results = {
+      workshop1: { success: false },
+      workshop2: { success: false },
+
+      overallSuccess: false,
+    };
+
+    try {
+      const workshop1Result = await this.sendWorkshopApprovalEmail({
+        email,
+        participantName,
+        workshopName: "workshop1",
+        institution,
+        status,
+        rejectMessage,
+      });
+      results.workshop1.success = workshop1Result.success;
+    } catch (error) {
+      console.error("Error sending Workshop 1 email:", error);
+      results.workshop1.success = false;
+    }
+
+    try {
+      const workshop2Result = await this.sendWorkshopApprovalEmail({
+        email,
+        participantName,
+        workshopName: "workshop2",
+        institution,
+        status,
+        rejectMessage,
+      });
+      results.workshop2.success = workshop2Result.success;
+    } catch (error) {
+      console.error("Error sending Workshop 2 email:", error);
+      results.workshop2.success = false;
+    }
+
+    results.overallSuccess =
+      results.workshop1.success && results.workshop2.success;
+
+    return results;
+  }
+
+  static async sendBothWorkshopsSuccessEmail(
+    email: string,
+    participantName: string,
+    institution: string
+  ) {
+    return await this.sendBothWorkshopsEmail(
+      email,
+      participantName,
+      institution,
+      "approved"
+    );
+  }
+
+  static async sendBothWorkshopsRejectionEmail(
+    email: string,
+    participantName: string,
+    institution: string,
+    rejectMessage: string
+  ) {
+    return await this.sendBothWorkshopsEmail(
+      email,
+      participantName,
+      institution,
+      "rejected",
+      rejectMessage
+    );
   }
 
   static async sendMagicLinkEmail(params: SendMagicLinkEmailParams) {
