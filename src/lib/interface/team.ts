@@ -5,6 +5,8 @@ export enum TeamApproval {
   Pending = "Pending",
   Accepted = "Accepted",
   Rejected = "Rejected",
+  Submitted = "Submitted",
+  Resubmitted = "Resubmitted",
 }
 
 export interface TeamDB {

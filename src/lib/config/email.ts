@@ -189,51 +189,6 @@ export async function sendRegistrationEmail({
   }
 }
 
-// export async function sendRejectRegistrationEmail(email: string) {
-//   const notifyMeTemplate = rejectSubmissionTemplate;
-
-//   const message = {
-//     from: `HackAttack.CCIHimaIF <${process.env.EMAIL_FROM}>`,
-//     to: email,
-//     subject: "🚀 Rejection: HackAttack2025 Submission",
-//     html: notifyMeTemplate.replace("{{email}}", email),
-//     attachments: [
-//       {
-//         filename: "header.png",
-//         path: path.join(
-//           process.cwd(),
-//           "public",
-//           "email-template",
-//           "email-asset",
-//           "header.png"
-//         ),
-//         cid: "header",
-//       },
-//       {
-//         filename: "banner.png",
-//         path: path.join(
-//           process.cwd(),
-//           "public",
-//           "email-template",
-//           "email-asset",
-//           "banner.png"
-//         ),
-//         cid: "banner",
-//       },
-//     ],
-//   };
-
-//   const transporter = createTransporter();
-
-//   try {
-//     await transporter.sendMail(message);
-//     return { success: true };
-//   } catch (error) {
-//     console.error("Error sending email:", error);
-//     return { success: false, error };
-//   }
-// }
-
 export async function determineBatch(registrationDate: Date): Promise<1 | 2> {
   const regDate = new Date(registrationDate);
   const batch1Start = new Date("2025-10-27");

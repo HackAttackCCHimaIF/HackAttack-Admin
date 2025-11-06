@@ -17,16 +17,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge, badgeVariants } from "@/components/ui/badge";
 import {
   Search,
   Filter,
   Eye,
-  Circle,
   XCircle,
   CheckCircle,
-  Clock,
   File,
+  Link,
 } from "lucide-react";
 
 import {
@@ -49,7 +47,6 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { TeamWithDetails, TeamApproval } from "@/lib/interface/team";
-import { MemberApproval } from "@/lib/interface/teammember";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { exportToExcel, formatDateForExcel } from "@/lib/utils/excelExport";
@@ -63,12 +60,16 @@ const mapApiStatusToComponentStatus = (apiStatus: TeamApproval): Status => {
       return "Approve";
     case TeamApproval.Rejected:
       return "Rejected";
+    case TeamApproval.Submitted:
+      return "Submitted";
+    case TeamApproval.Resubmitted:
+      return "Resubmitted";
     default:
       return "Pending";
   }
 };
 
-type Status = "Pending" | "Approve" | "Rejected";
+type Status = "Pending" | "Approve" | "Rejected" | "Submitted" | "Resubmitted";
 
 interface Participant {
   id: string;
@@ -91,21 +92,21 @@ export default function RegistrationTable() {
     action: "Approve" | "Reject" | null;
   }>({ index: -1, action: null });
   const [showSuccess, setShowSuccess] = useState(false);
-  const [approvalLoading, setApprovalLoading] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [teamApprovalLoading, setTeamApprovalLoading] = useState<string | null>(
-    null
-  );
+  const [, setTeamApprovalLoading] = useState<string | null>(null);
   const [showReason, setShowReason] = useState(false);
   const [reason, setReason] = useState("");
   const [filterPending, setFilterPending] = useState(false);
   const [filterAccepted, setFilterAccepted] = useState(false);
   const [filterRejected, setFilterRejected] = useState(false);
+  const [filterSubmitted, setFilterSubmitted] = useState(false);
+  const [filterResubmitted, setFilterResubmitted] = useState(false);
 
   const handleSelectAll = () => {
     setFilterPending(true);
     setFilterAccepted(true);
     setFilterRejected(true);
+    setFilterSubmitted(true);
+    setFilterResubmitted(true);
   };
 
   useEffect(() => {
@@ -139,60 +140,6 @@ export default function RegistrationTable() {
 
     fetchTeams();
   }, []);
-
-  const handleMemberApproval = async (
-    memberId: string,
-    approval: MemberApproval
-  ) => {
-    setApprovalLoading(memberId);
-
-    try {
-      const response = await fetch("/api/team/member/approval", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          memberId,
-          approval,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to update member approval");
-      }
-
-      setParticipants((prevParticipants) =>
-        prevParticipants.map((participant) => ({
-          ...participant,
-          teamData: participant.teamData
-            ? {
-                ...participant.teamData,
-                members: participant.teamData.members.map((member) =>
-                  member.id === memberId
-                    ? { ...member, memberApproval: approval }
-                    : member
-                ),
-              }
-            : participant.teamData,
-        }))
-      );
-
-      console.log(`Member approval updated to ${approval}`);
-      toast.success(`Member approval updated to ${approval}`);
-    } catch (error) {
-      console.error("Error updating member approval:", error);
-      toast.error(
-        `Failed to update member approval: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
-    } finally {
-      setApprovalLoading(null);
-    }
-  };
 
   const handleTeamApproval = async (
     teamId: string,
@@ -284,8 +231,17 @@ export default function RegistrationTable() {
     const matchPending = filterPending && item.status === "Pending";
     const matchAccepted = filterAccepted && item.status === "Approve";
     const matchRejected = filterRejected && item.status === "Rejected";
+    const matchSubmitted = filterSubmitted && item.status === "Submitted";
+    const matchResubmitted = filterResubmitted && item.status === "Resubmitted";
 
-    return matchSearch && (matchPending || matchAccepted || matchRejected);
+    return (
+      matchSearch &&
+      (matchPending ||
+        matchAccepted ||
+        matchRejected ||
+        matchSubmitted ||
+        matchResubmitted)
+    );
   });
 
   if (loading) {
@@ -434,6 +390,38 @@ export default function RegistrationTable() {
                       Rejected
                     </label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="submitted"
+                      checked={filterSubmitted}
+                      onCheckedChange={(checked) =>
+                        setFilterSubmitted(checked as boolean)
+                      }
+                      className="border-gray-400 data-[state=checked]:bg-yellow-600 data-[state=checked]:border-yellow-600"
+                    />
+                    <label
+                      htmlFor="submitted"
+                      className="text-sm font-medium text-white cursor-pointer"
+                    >
+                      Submitted
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="resubmitted"
+                      checked={filterResubmitted}
+                      onCheckedChange={(checked) =>
+                        setFilterResubmitted(checked as boolean)
+                      }
+                      className="border-gray-400 data-[state=checked]:bg-yellow-600 data-[state=checked]:border-yellow-600"
+                    />
+                    <label
+                      htmlFor="resubmitted"
+                      className="text-sm font-medium text-white cursor-pointer"
+                    >
+                      Resubmitted
+                    </label>
+                  </div>
                 </div>
                 <DropdownMenuSeparator className="bg-gray-700 my-3" />
                 <div className="flex gap-2">
@@ -510,86 +498,6 @@ export default function RegistrationTable() {
                                         {member.email}
                                       </p>
                                     </div>
-                                    <div className="flex items-start gap-6 mt-3">
-                                      <div className="flex gap-1">
-                                        <button
-                                          onClick={() =>
-                                            handleMemberApproval(
-                                              member.id,
-                                              MemberApproval.Accepted
-                                            )
-                                          }
-                                          disabled={
-                                            approvalLoading === member.id ||
-                                            member.memberApproval ===
-                                              MemberApproval.Accepted
-                                          }
-                                          className={badgeVariants({
-                                            className: `cursor-pointer px-6 ${
-                                              member.memberApproval ===
-                                              MemberApproval.Accepted
-                                                ? "bg-green-600"
-                                                : "bg-[#4e4e4e] hover:bg-green-600"
-                                            } ${
-                                              approvalLoading === member.id
-                                                ? "opacity-50 cursor-not-allowed"
-                                                : ""
-                                            }`,
-                                          })}
-                                        >
-                                          {approvalLoading === member.id ? (
-                                            <Clock className="size-4 animate-spin" />
-                                          ) : (
-                                            <CheckCircle className="size-4" />
-                                          )}{" "}
-                                          Yes!
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            handleMemberApproval(
-                                              member.id,
-                                              MemberApproval.Rejected
-                                            )
-                                          }
-                                          disabled={
-                                            approvalLoading === member.id ||
-                                            member.memberApproval ===
-                                              MemberApproval.Rejected
-                                          }
-                                          className={badgeVariants({
-                                            className: `cursor-pointer px-6 ${
-                                              member.memberApproval ===
-                                              MemberApproval.Rejected
-                                                ? "bg-red-800"
-                                                : "bg-red-600 hover:bg-red-800"
-                                            } ${
-                                              approvalLoading === member.id
-                                                ? "opacity-50 cursor-not-allowed"
-                                                : ""
-                                            }`,
-                                          })}
-                                        >
-                                          {approvalLoading === member.id ? (
-                                            <Clock className="size-4 animate-spin" />
-                                          ) : (
-                                            <XCircle className="size-4" />
-                                          )}{" "}
-                                          No!
-                                        </button>
-                                      </div>
-                                      <Badge
-                                        className={`ml-auto ${
-                                          member.memberApproval === "Accepted"
-                                            ? "bg-green-500 text-white"
-                                            : member.memberApproval ===
-                                              "Rejected"
-                                            ? "bg-red-500 text-white"
-                                            : "bg-yellow-500 text-black"
-                                        }`}
-                                      >
-                                        {member.memberApproval}
-                                      </Badge>
-                                    </div>
                                   </div>
                                   <span
                                     className={`px-3 py-1 rounded-full text-xs font-semibold ${
@@ -599,7 +507,7 @@ export default function RegistrationTable() {
                                     }`}
                                   >
                                     {member.isLeader
-                                      ? "Team Leader"
+                                      ? "Team Leader, " + member.memberRole
                                       : member.memberRole}
                                   </span>
                                 </div>
@@ -611,15 +519,12 @@ export default function RegistrationTable() {
                                 <div className="flex items-center gap-3 mt-2 flex-col p-2 bg-white/30 rounded-md min-h-[140px]">
                                   <div className="w-full flex justify-between">
                                     <h5 className="text-xs">Link Files</h5>
-                                    <Badge className="bg-[#FFF2DD] text-[#D98634] rounded-full">
-                                      <Circle className="fill-current text-[#D98634] !size-2" />{" "}
-                                      Verification Required
-                                    </Badge>
                                   </div>
                                   <div className="flex flex-col gap-2">
                                     <Button
-                                      size={"sm"}
                                       variant="outline"
+                                      type="button"
+                                      size={"sm"}
                                       className="bg-white/10 border border-white/20 text-white hover:bg-white/20 hover:text-white"
                                       onClick={() =>
                                         window.open(member.dataUrl, "_blank")
@@ -627,6 +532,9 @@ export default function RegistrationTable() {
                                     >
                                       <Eye /> Open Document
                                     </Button>
+                                    <p className="text-xs text-white/70">
+                                      {member.dataUrl}
+                                    </p>
                                   </div>
                                 </div>
                               </div>
@@ -647,7 +555,8 @@ export default function RegistrationTable() {
                     {new Date(row.date).toLocaleDateString("en-GB")}
                   </TableCell>
                   <TableCell className="flex gap-2 py-4 px-6 flex-col">
-                    {row.status === "Pending" ? (
+                    {row.status === "Submitted" ||
+                    row.status === "Resubmitted" ? (
                       <>
                         {/* Approve */}
                         <AlertDialog>
@@ -657,7 +566,7 @@ export default function RegistrationTable() {
                               onClick={() =>
                                 setSelected({ index: idx, action: "Approve" })
                               }
-                              className="bg-[#8B8B8B] text-white border w-[120px] border-white/20 flex items-center justify-start gap-2 rounded-full"
+                              className="bg-green-600 text-white border w-[120px] border-white/20 flex items-center justify-start gap-2 rounded-full"
                             >
                               <CheckCircle />
                               Approve
