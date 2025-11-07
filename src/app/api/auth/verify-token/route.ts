@@ -29,7 +29,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if token is expired
     const now = new Date();
     const expiresAt = new Date(tokenData.expires_at);
 
@@ -59,39 +58,33 @@ export async function POST(request: NextRequest) {
 
     console.log("Token marked as used successfully");
 
-    // Get user by email using listUsers and filter
-    const { data: authUsers, error: authError } =
-      await supabaseServer.auth.admin.listUsers();
+    const { data: adminData, error: adminError } = await supabaseServer
+      .from("Admins")
+      .select("email, nama_admin")
+      .eq("email", tokenData.email)
+      .single();
 
-    console.log("Auth users lookup:", {
-      authError,
-      userCount: authUsers?.users?.length,
-    });
-
-    if (authError) {
-      console.error("Auth error:", authError);
+    if (adminError) {
+      console.error("Admin error:", adminError);
       return NextResponse.json(
         { error: "Failed to verify user" },
         { status: 500 }
       );
     }
 
-    const user = authUsers.users.find((u) => u.email === tokenData.email);
-    console.log("User found:", { email: tokenData.email, userFound: !!user });
-
-    if (!user) {
+    if (!adminData) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const sessionToken = crypto.randomBytes(32).toString("hex");
 
-    const sessionExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const sessionExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     const { error: sessionError } = await supabaseServer
       .from("admin_sessions")
       .insert({
         session_token: sessionToken,
-        admin_email: tokenData.email,
+        admin_email: adminData.email,
         expires_at: sessionExpiresAt.toISOString(),
         created_at: new Date().toISOString(),
       });
@@ -106,7 +99,6 @@ export async function POST(request: NextRequest) {
 
     console.log("Custom session created successfully");
 
-    // Create response with session cookie
     const response = NextResponse.json({
       success: true,
       message: "Token verified successfully",
@@ -116,12 +108,11 @@ export async function POST(request: NextRequest) {
       redirect_to: "/dashboard/admin",
     });
 
-    // Set session cookie
     response.cookies.set("admin_session", sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 24 * 60 * 60, // 24 hours
+      maxAge: 24 * 60 * 60,
       path: "/",
     });
 

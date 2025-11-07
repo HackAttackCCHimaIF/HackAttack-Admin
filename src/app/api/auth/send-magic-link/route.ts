@@ -22,31 +22,18 @@ export async function POST(request: NextRequest) {
 
     const { data: adminData, error: adminError } = await supabaseServer
       .from("Admins")
-      .select("email")
+      .select("email, nama_admin")
       .eq("email", email)
       .single();
 
     if (adminError || !adminData) {
       return NextResponse.json(
-        { error: "Unauthorized: Email not authorized for admin access" },
+        {
+          error: "Unauthorized: Email not authorized for admin access",
+          adminError,
+        },
         { status: 403 }
       );
-    }
-
-    const { data: authUsers, error: authError } =
-      await supabaseServer.auth.admin.listUsers();
-
-    if (authError) {
-      console.error("Auth error:", authError);
-      return NextResponse.json(
-        { error: "Failed to verify user" },
-        { status: 500 }
-      );
-    }
-
-    const user = authUsers.users.find((u) => u.email === email);
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const token = crypto.randomBytes(32).toString("hex");
@@ -72,8 +59,7 @@ export async function POST(request: NextRequest) {
       await EmailService.sendMagicLinkEmail({
         email,
         token,
-        adminName:
-          user.user_metadata?.full_name || user.email?.split("@")[0] || "Admin",
+        adminName: adminData.nama_admin,
       });
     } catch (emailError) {
       console.error("Email sending error:", emailError);
