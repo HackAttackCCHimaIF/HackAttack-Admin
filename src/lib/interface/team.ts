@@ -28,7 +28,7 @@ export interface Team {
   teamName: string;
   institution: string;
   whatsappNumber: number;
-  paymentProofUrl: string;
+  paymentproof_url: string;
   createdAt: string;
   updatedAt: string;
   approvalStatus: TeamApproval;

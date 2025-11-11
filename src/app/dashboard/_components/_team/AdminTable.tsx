@@ -69,6 +69,7 @@ interface Participant {
   institution: string;
   members: number;
   status: Status;
+  paymentproof_url: string;
   date: string;
   reason?: string;
   teamData?: TeamWithDetails;
@@ -117,6 +118,7 @@ export default function RegistrationTable() {
             institution: team.institution,
             members: team.memberCount,
             status: mapApiStatusToComponentStatus(team.approvalStatus),
+            paymentproof_url: team.paymentproof_url,
             date: team.createdAt,
             teamData: team,
           })
@@ -439,6 +441,7 @@ export default function RegistrationTable() {
                 <TableHead className="text-white">Institution</TableHead>
                 <TableHead className="text-white">Members</TableHead>
                 <TableHead className="text-white">Status</TableHead>
+                <TableHead className="text-white">Payment Proof</TableHead>
                 <TableHead className="text-white">Registration Date</TableHead>
                 <TableHead className="text-white">Actions</TableHead>
               </TableRow>
@@ -542,6 +545,22 @@ export default function RegistrationTable() {
                       entityId={row.id}
                       entityType="team"
                     />
+                  </TableCell>
+                  <TableCell className="py-4 px-6">
+                    <Button
+                      variant="outline"
+                      type="button"
+                      size={"sm"}
+                      className="bg-blue-600 border border-blue-600 text-white hover:bg-blue-800 hover:text-white"
+                      onClick={() =>
+                        window.open(row.paymentproof_url, "_blank")
+                      }
+                    >
+                      <Eye /> Payment Proof
+                    </Button>
+                    <p className="text-xs text-white/70 mt-2 mr-2 ml-2">
+                      {row.paymentproof_url}
+                    </p>
                   </TableCell>
                   <TableCell className="py-4 px-6">
                     {new Date(row.date).toLocaleDateString("en-GB")}

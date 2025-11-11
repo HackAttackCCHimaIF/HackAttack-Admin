@@ -2,7 +2,10 @@ import { TeamDB, Team } from "@/lib/interface/team";
 import { UserDB, User } from "@/lib/interface/users";
 import { TeamMemberDB, TeamMember } from "@/lib/interface/teammember";
 import { WorkshopDB, Workshop } from "@/lib/interface/workshop";
-import { AdminActionHistoryDB, AdminActionHistory } from "@/lib/interface/history";
+import {
+  AdminActionHistoryDB,
+  AdminActionHistory,
+} from "@/lib/interface/history";
 
 export function convertUserDBToUser(userDB: UserDB): User {
   return {
@@ -23,7 +26,7 @@ export function convertTeamDBToTeam(teamDB: TeamDB): Team {
     teamName: teamDB.team_name,
     institution: teamDB.institution,
     whatsappNumber: teamDB.whatsapp_number,
-    paymentProofUrl: teamDB.paymentproof_url,
+    paymentproof_url: teamDB.paymentproof_url,
     createdAt: teamDB.created_at,
     updatedAt: teamDB.updated_at,
     approvalStatus: teamDB.approvalstatus,
@@ -64,7 +67,9 @@ export function convertWorkshopDBToWorkshop(workshopDB: WorkshopDB): Workshop {
   };
 }
 
-export function convertHistoryDBToHistory(historyDB: AdminActionHistoryDB): AdminActionHistory {
+export function convertHistoryDBToHistory(
+  historyDB: AdminActionHistoryDB
+): AdminActionHistory {
   return {
     id: historyDB.id,
     adminEmail: historyDB.admin_email,
