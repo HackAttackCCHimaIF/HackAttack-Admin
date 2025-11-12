@@ -43,7 +43,7 @@ export function convertTeamMemberDBToTeamMember(
     name: memberDB.name,
     email: memberDB.email,
     githubUrl: memberDB.github_url,
-    dataUrl: memberDB.data_url,
+    requirementLink: memberDB.requirementLink,
     isLeader: memberDB.is_leader,
     createdAt: memberDB.created_at,
     updatedAt: memberDB.updated_at,

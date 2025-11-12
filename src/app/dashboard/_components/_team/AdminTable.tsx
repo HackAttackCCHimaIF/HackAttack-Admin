@@ -43,6 +43,13 @@ import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { exportToExcel, formatDateForExcel } from "@/lib/utils/excelExport";
 import { HoverableStatus } from "@/components/ui/hoverable-status";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@radix-ui/react-tooltip";
+import { GithubLogo } from "phosphor-react";
 
 const mapApiStatusToComponentStatus = (apiStatus: TeamApproval): Status => {
   switch (apiStatus) {
@@ -522,13 +529,32 @@ export default function RegistrationTable() {
                                       size={"sm"}
                                       className="bg-white/10 border border-white/20 text-white hover:bg-white/20 hover:text-white"
                                       onClick={() =>
-                                        window.open(member.dataUrl, "_blank")
+                                        window.open(
+                                          member.requirementLink,
+                                          "_blank"
+                                        )
                                       }
                                     >
                                       <Eye /> Open Document
                                     </Button>
                                     <p className="text-xs text-white/70">
-                                      {member.dataUrl}
+                                      {member.requirementLink}
+                                    </p>
+                                  </div>
+                                  <div className="flex flex-col gap-2">
+                                    <Button
+                                      variant="outline"
+                                      type="button"
+                                      size={"sm"}
+                                      className="bg-white/10 border border-white/20 text-white hover:bg-white/20 hover:text-white"
+                                      onClick={() =>
+                                        window.open(member.githubUrl, "_blank")
+                                      }
+                                    >
+                                      <GithubLogo /> Open GitHub
+                                    </Button>
+                                    <p className="text-xs text-white/70">
+                                      {member.githubUrl}
                                     </p>
                                   </div>
                                 </div>
@@ -547,20 +573,35 @@ export default function RegistrationTable() {
                     />
                   </TableCell>
                   <TableCell className="py-4 px-6">
-                    <Button
-                      variant="outline"
-                      type="button"
-                      size={"sm"}
-                      className="bg-blue-600 border border-blue-600 text-white hover:bg-blue-800 hover:text-white"
-                      onClick={() =>
-                        window.open(row.paymentproof_url, "_blank")
-                      }
-                    >
-                      <Eye /> Payment Proof
-                    </Button>
-                    <p className="text-xs text-white/70 mt-2 mr-2 ml-2">
-                      {row.paymentproof_url}
-                    </p>
+                    <TooltipProvider delayDuration={100}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          {/* <button
+                            type="button"
+                            className="text-white/60 hover:text-white"
+                          > */}
+                          <Button
+                            variant="outline"
+                            type="button"
+                            size={"sm"}
+                            className="bg-blue-600 border border-blue-600 text-white hover:bg-blue-800 hover:text-white"
+                            onClick={() =>
+                              window.open(row.paymentproof_url, "_blank")
+                            }
+                          >
+                            <Eye /> Payment Proof
+                          </Button>
+                          {/* <InfoIcon className="size-4" /> */}
+                          {/* </button> */}
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="bottom"
+                          className="max-w-xs text-sm"
+                        >
+                          <p>{row.paymentproof_url}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>{" "}
                   </TableCell>
                   <TableCell className="py-4 px-6">
                     {new Date(row.date).toLocaleDateString("en-GB")}

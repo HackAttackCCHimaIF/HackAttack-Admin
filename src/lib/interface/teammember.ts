@@ -16,7 +16,7 @@ export interface TeamMemberDB {
   name: string;
   email: string;
   github_url: string;
-  data_url: string;
+  requirementLink: string;
   is_leader: boolean;
   created_at: string;
   updated_at: string;
@@ -30,7 +30,7 @@ export interface TeamMember {
   name: string;
   email: string;
   githubUrl: string;
-  dataUrl: string;
+  requirementLink: string;
   isLeader: boolean;
   createdAt: string;
   updatedAt: string;
