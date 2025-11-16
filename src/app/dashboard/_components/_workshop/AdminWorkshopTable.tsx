@@ -17,7 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, Filter, Eye, XCircle, CheckCircle, File } from "lucide-react";
+import { Search, Filter, Eye, File } from "lucide-react";
 
 import {
   AlertDialog,
@@ -28,7 +28,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -101,44 +100,6 @@ export default function AdminWorkshopTable() {
 
     fetchWorkshopData();
   }, []);
-
-  const handleApprove = async () => {
-    if (selected.index !== -1) {
-      try {
-        const participant = participants[selected.index];
-        const response = await fetch("/api/workshop", {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id: participant.id,
-            status: "Approved",
-          }),
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-          const updated = [...participants];
-          updated[selected.index].approval = WorkshopApproval.Approved;
-          setParticipants(updated);
-          setSelected({ index: -1, action: null });
-          setShowSuccess(true);
-          toast.success("Participant approved successfully");
-        } else {
-          toast.error("Failed to approve participant");
-        }
-      } catch (error) {
-        console.error("Error approving participant:", error);
-        toast.error("Error approving participant");
-      }
-    }
-  };
-
-  const handleReject = () => {
-    setShowReason(true);
-  };
 
   const handleSelectAll = () => {
     setFilterPending(true);
@@ -359,7 +320,6 @@ export default function AdminWorkshopTable() {
                 <TableHead className="text-white">Payment Proof</TableHead>
                 <TableHead className="text-white">Status</TableHead>
                 <TableHead className="text-white">Registration Date</TableHead>
-                <TableHead className="text-white">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -409,95 +369,6 @@ export default function AdminWorkshopTable() {
                   </TableCell>
                   <TableCell className="py-4 px-6">
                     {new Date(row.date).toLocaleDateString("en-GB")}
-                  </TableCell>
-                  <TableCell className="flex gap-2 py-4 px-6 flex-col">
-                    {row.approval === "Pending" && (
-                      <>
-                        {/* Approve */}
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              onClick={() =>
-                                setSelected({ index: idx, action: "Approved" })
-                              }
-                              className="bg-[#8B8B8B] text-white border w-[120px] border-white/20 flex items-center justify-start gap-2 rounded-full"
-                            >
-                              <CheckCircle />
-                              Approve
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="backdrop-blur-lg bg-black/80 text-white">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="text-lg font-bold">
-                                Are you sure you want to approve this
-                                participant?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription className="text-gray-300">
-                                This action will approve{" "}
-                                <span className="font-semibold">
-                                  {row.name}
-                                </span>
-                                .
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter className="flex gap-3 justify-center mt-6">
-                              <AlertDialogCancel className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700">
-                                NO
-                              </AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={handleApprove}
-                                className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700"
-                              >
-                                YES
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-
-                        {/* Reject */}
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              onClick={() =>
-                                setSelected({ index: idx, action: "Rejected" })
-                              }
-                              className="bg-red-600 text-white w-[120px] flex items-center justify-start rounded-full gap-2"
-                            >
-                              <XCircle />
-                              Reject
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="backdrop-blur-lg bg-black/80 text-white">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="text-lg font-bold">
-                                Are you sure you want to reject this
-                                participant?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription className="text-gray-300">
-                                This action will reject{" "}
-                                <span className="font-semibold">
-                                  {row.name}
-                                </span>
-                                .
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter className="flex gap-3 mt-6 items-center justify-center w-full">
-                              <AlertDialogCancel className="bg-red-600 border-none text-white px-6 py-2 rounded-md hover:bg-red-700 max-w-[120px] w-full">
-                                NO
-                              </AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={handleReject}
-                                className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 max-w-[120px] w-full"
-                              >
-                                YES
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </>
-                    )}
                   </TableCell>
                 </TableRow>
               ))}

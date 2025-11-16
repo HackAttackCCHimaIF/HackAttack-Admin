@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, Eye, ChevronDown, Loader2, File } from "lucide-react";
+import { Search, Filter, Eye, ChevronDown, File } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,7 +27,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { SubmissionStatus } from "@/lib/interface/submission";
 import { toast } from "sonner";
 import { TeamMember } from "@/lib/interface/teammember";
 import { exportToExcel, formatDateForExcel } from "@/lib/utils/excelExport";
@@ -71,7 +70,6 @@ export default function AdminSubmissionTable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // filter states
   const [filterSubmitted, setFilterSubmitted] = useState(false);
@@ -112,55 +110,6 @@ export default function AdminSubmissionTable() {
 
     fetchTeamsWithSubmissions();
   }, []);
-
-  const handleSubmissionApproval = async (
-    submissionId: string,
-    status: SubmissionStatus
-  ) => {
-    if (!submissionId) {
-      toast.error("No submission found for this team");
-      return;
-    }
-
-    setActionLoading(submissionId);
-    try {
-      const response = await fetch("/api/team/submission/status", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          submissionId,
-          status,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to update submission status");
-      }
-
-      setParticipants((prev) =>
-        prev.map((participant) =>
-          participant.submissionId === submissionId
-            ? { ...participant, submissionStatus: status }
-            : participant
-        )
-      );
-
-      toast.success(`Submission ${status.toLowerCase()} successfully`);
-    } catch (error) {
-      console.error("Error updating submission status:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to update submission status"
-      );
-    } finally {
-      setActionLoading(null);
-    }
-  };
 
   const handleSelectAll = () => {
     setFilterSubmitted(true);
@@ -346,7 +295,6 @@ export default function AdminSubmissionTable() {
                 <TableHead className="text-white">Members</TableHead>
                 <TableHead className="text-white">Status</TableHead>
                 <TableHead className="text-white">Registration Date</TableHead>
-                <TableHead className="text-white">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -439,67 +387,6 @@ export default function AdminSubmissionTable() {
                   <TableCell className="py-4 px-6">
                     {" "}
                     {new Date(row.date).toLocaleDateString("en-GB")}
-                  </TableCell>
-                  <TableCell className="py-4 px-6">
-                    {row.submissionStatus === SubmissionStatus.Pending ? (
-                      <div className="flex space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                          onClick={() =>
-                            handleSubmissionApproval(
-                              row.id,
-                              SubmissionStatus.Valid
-                            )
-                          }
-                          disabled={actionLoading === row.id}
-                        >
-                          {actionLoading === row.id ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            "Valid"
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
-                          onClick={() =>
-                            handleSubmissionApproval(
-                              row.id,
-                              SubmissionStatus.Invalid
-                            )
-                          }
-                          disabled={actionLoading === row.id}
-                        >
-                          {actionLoading === row.id ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            "Invalid"
-                          )}
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                          disabled={true}
-                        >
-                          Valid
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
-                          disabled={true}
-                        >
-                          Invalid
-                        </Button>
-                      </div>
-                    )}
                   </TableCell>
                 </TableRow>
               ))}
