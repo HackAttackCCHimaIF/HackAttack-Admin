@@ -20,6 +20,7 @@ export interface TeamDB {
   updated_at: string;
   approvalstatus: TeamApproval;
   reject_message: string;
+  proposal_url?: string;
 }
 
 export interface Team {
@@ -31,6 +32,7 @@ export interface Team {
   paymentproof_url: string;
   createdAt: string;
   updatedAt: string;
+  proposal_url?: string;
   approvalStatus: TeamApproval;
   rejectMessage: string;
 }

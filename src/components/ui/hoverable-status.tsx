@@ -25,7 +25,7 @@ const getStatusBadge = (status: string) => {
   ) {
     return (
       <Badge className="bg-orange-50 rounded-full text-yellow-400 font-semibold py-2">
-        <Circle className="!w-3 !h-3 fill-current text-yellow-400 mr-1" />
+        <Circle className="!w-3 !h-3 fill-current text-white mr-1" />
         Pending
       </Badge>
     );
@@ -38,8 +38,8 @@ const getStatusBadge = (status: string) => {
     normalizedStatus.includes("approve")
   ) {
     return (
-      <Badge className="bg-white rounded-full text-green-600 font-semibold py-2">
-        <Circle className="!w-3 !h-3 fill-current text-green-600 mr-1" />
+      <Badge className="bg-green-600 rounded-full text-white font-semibold py-2">
+        <Circle className="!w-3 !h-3 fill-current text-white mr-1" />
         Approved
       </Badge>
     );
@@ -50,8 +50,8 @@ const getStatusBadge = (status: string) => {
     normalizedStatus.includes("invalid")
   ) {
     return (
-      <Badge className="bg-white rounded-full text-red-600 font-semibold py-2">
-        <Circle className="!w-3 !h-3 fill-current text-red-600 mr-1" />
+      <Badge className="bg-red-600 rounded-full text-white font-semibold py-2">
+        <Circle className="!w-3 !h-3 fill-current text-white mr-1" />
         Rejected
       </Badge>
     );
@@ -59,8 +59,8 @@ const getStatusBadge = (status: string) => {
 
   if (normalizedStatus === "submitted") {
     return (
-      <Badge className="bg-white rounded-full text-blue-600 font-semibold py-2">
-        <Circle className="!w-3 !h-3 fill-current text-blue-600 mr-1" />
+      <Badge className="bg-blue-600 rounded-full text-white font-semibold py-2">
+        <Circle className="!w-3 !h-3 fill-current text-white mr-1" />
         Submitted
       </Badge>
     );
@@ -68,8 +68,8 @@ const getStatusBadge = (status: string) => {
 
   if (normalizedStatus === "resubmitted") {
     return (
-      <Badge className="bg-white rounded-full text-blue-600 font-semibold py-2">
-        <Circle className="!w-3 !h-3 fill-current text-blue-600 mr-1" />
+      <Badge className="bg-blue-600 rounded-full text-white font-semibold py-2">
+        <Circle className="!w-3 !h-3 fill-current text-white mr-1" />
         Resubmitted
       </Badge>
     );
@@ -77,8 +77,8 @@ const getStatusBadge = (status: string) => {
 
   // Default case
   return (
-    <Badge className="bg-white rounded-full text-yellow-400 font-semibold py-2">
-      <Circle className="!w-3 !h-3 fill-current text-yellow-400 mr-1" />
+    <Badge className="bg-yellow-400 rounded-full text-white font-semibold py-2">
+      <Circle className="!w-3 !h-3 fill-current text-white mr-1" />
       {status}
     </Badge>
   );

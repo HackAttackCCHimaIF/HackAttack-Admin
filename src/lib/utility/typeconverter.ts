@@ -25,6 +25,7 @@ export function convertTeamDBToTeam(teamDB: TeamDB): Team {
     createdBy: teamDB.created_by,
     teamName: teamDB.team_name,
     institution: teamDB.institution,
+    proposal_url: teamDB.proposal_url,
     whatsappNumber: teamDB.whatsapp_number,
     paymentproof_url: teamDB.paymentproof_url,
     createdAt: teamDB.created_at,

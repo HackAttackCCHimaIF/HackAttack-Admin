@@ -19,17 +19,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search, Filter, Eye, File } from "lucide-react";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { exportToExcel, formatDateForExcel } from "@/lib/utils/excelExport";
 import { toast } from "sonner";
@@ -53,16 +42,6 @@ export default function AdminWorkshopTable() {
   const [search, setSearch] = useState("");
   const [participants, setParticipants] = useState<WorkshopParticipant[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const [selected, setSelected] = useState<{
-    index: number;
-    action: "Approved" | "Rejected" | null;
-  }>({ index: -1, action: null });
-
-  const [showReason, setShowReason] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
-  const [showSuccess, setShowSuccess] = useState(false);
-
   const [filterPending, setFilterPending] = useState(false);
   const [filterApproved, setFilterApproved] = useState(false);
   const [filterRejected, setFilterRejected] = useState(false);
@@ -105,44 +84,6 @@ export default function AdminWorkshopTable() {
     setFilterPending(true);
     setFilterApproved(true);
     setFilterRejected(true);
-  };
-
-  const handleSubmitReason = async () => {
-    if (selected.index !== -1 && rejectReason.trim()) {
-      try {
-        const participant = participants[selected.index];
-        const response = await fetch("/api/workshop", {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id: participant.id,
-            status: "Rejected",
-            rejectMessage: rejectReason.trim(),
-          }),
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-          const updated = [...participants];
-          updated[selected.index].approval = WorkshopApproval.Rejected;
-          updated[selected.index].rejectreason = rejectReason.trim();
-          setParticipants(updated);
-          setSelected({ index: -1, action: null });
-          setShowReason(false);
-          setRejectReason("");
-          setShowSuccess(true);
-          toast.success("Participant rejected and email sent successfully");
-        } else {
-          toast.error("Failed to reject participant");
-        }
-      } catch (error) {
-        console.error("Error rejecting participant:", error);
-        toast.error("Error rejecting participant");
-      }
-    }
   };
 
   const filteredData = participants.filter((item) => {
@@ -375,69 +316,6 @@ export default function AdminWorkshopTable() {
             </TableBody>
           </Table>
         </div>
-
-        {/* Success Dialog */}
-        <AlertDialog open={showSuccess} onOpenChange={setShowSuccess}>
-          <AlertDialogContent className="backdrop-blur-lg bg-black/80 text-white">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-lg font-bold text-center">
-                Success!
-              </AlertDialogTitle>
-              <AlertDialogDescription className="text-gray-300 text-center">
-                The participant status has been updated successfully.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="flex justify-center">
-              <AlertDialogAction
-                onClick={() => setShowSuccess(false)}
-                className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700"
-              >
-                OK
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        {/* Reason Dialog */}
-        <AlertDialog open={showReason} onOpenChange={setShowReason}>
-          <AlertDialogContent className="backdrop-blur-lg bg-black/80 text-white">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-lg font-bold">
-                Rejection Reason
-              </AlertDialogTitle>
-              <AlertDialogDescription className="text-gray-300">
-                Please provide a reason for rejecting this participant.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <div className="my-4">
-              <Textarea
-                placeholder="Enter rejection reason..."
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                className="bg-white/10 border border-white/20 text-white placeholder:text-gray-400"
-              />
-            </div>
-            <AlertDialogFooter className="flex gap-3 justify-center">
-              <AlertDialogCancel
-                onClick={() => {
-                  setShowReason(false);
-                  setRejectReason("");
-                  setSelected({ index: -1, action: null });
-                }}
-                className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700"
-              >
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleSubmitReason}
-                disabled={!rejectReason.trim()}
-                className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
-              >
-                Submit
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     </div>
   );

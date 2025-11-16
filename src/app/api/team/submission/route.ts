@@ -12,6 +12,7 @@ interface TeamWithSubmissionStatus extends Team {
   teamMembers: TeamMember[];
   hasSubmission: boolean;
   submissionId?: string;
+  proposal_url?: string;
   submissionStatus?: string;
   submissionDate?: string;
 }
@@ -86,6 +87,7 @@ export async function GET() {
           teamMembers,
           hasSubmission: !!submission,
           submissionId: submission?.id,
+          proposal_url: submission?.proposal_url,
           submissionStatus: submission?.status,
           submissionDate: submission?.created_at,
         };

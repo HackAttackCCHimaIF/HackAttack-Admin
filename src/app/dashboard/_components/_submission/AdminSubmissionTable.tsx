@@ -17,15 +17,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import { Search, Filter, Eye, ChevronDown, File } from "lucide-react";
+import { Search, Filter, ChevronDown, File } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { TeamMember } from "@/lib/interface/teammember";
@@ -48,6 +47,7 @@ interface TeamWithSubmissionStatus {
   teamMembers: TeamMember[];
   hasSubmission: boolean;
   submissionId?: string;
+  proposal_url?: string;
   submissionStatus?: string;
   submissionDate?: string;
 }
@@ -61,6 +61,7 @@ interface Participant {
   date: string;
   teamMembers: TeamMember[];
   submissionId?: string;
+  proposal_url?: string;
   submissionStatus?: string;
 }
 
@@ -96,6 +97,7 @@ export default function AdminSubmissionTable() {
             teamMembers: team.teamMembers,
             submissionId: team.submissionId,
             submissionStatus: team.submissionStatus,
+            proposal_url: team.proposal_url,
           })
         );
 
@@ -170,7 +172,7 @@ export default function AdminSubmissionTable() {
             ?.filter((m) => m.isLeader === false)
             .map((m) => m.name)
             .join(", ") || "-",
-        "Submission ID": participant.submissionId || "-",
+        "Submission URL": participant.proposal_url || "-",
       }));
 
       const filename = `Team_Submissions_${
@@ -292,9 +294,9 @@ export default function AdminSubmissionTable() {
               <TableRow className="border-white/20">
                 <TableHead className="text-white">Team Name</TableHead>
                 <TableHead className="text-white">Institution</TableHead>
-                <TableHead className="text-white">Members</TableHead>
+                <TableHead className="text-white">Submission</TableHead>
                 <TableHead className="text-white">Status</TableHead>
-                <TableHead className="text-white">Registration Date</TableHead>
+                <TableHead className="text-white">Submission Date</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -308,73 +310,33 @@ export default function AdminSubmissionTable() {
                   <TableCell className="py-4 px-6">{row.team}</TableCell>
                   <TableCell className="py-4 px-6">{row.institution}</TableCell>
                   <TableCell>
-                    <Dialog>
-                      <DialogTrigger>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex items-center gap-1 bg-white/10 border-white/20 text-white"
-                        >
-                          <Eye className="h-4 w-4" /> Details ({row.members})
-                        </Button>
-                      </DialogTrigger>
-
-                      <DialogContent className="!max-w-3xl lg:!max-w-5xl !w-full rounded-2xl backdrop-blur-lg bg-gradient-to-b from-white/50 to-black/50 text-white">
-                        <DialogHeader>
-                          <DialogTitle className="text-xl font-bold">
-                            Team Members : {row.team}
-                          </DialogTitle>
-                        </DialogHeader>
-
-                        {/* List anggota tim */}
-                        <div className="flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
-                          {row.teamMembers.map((member) => (
-                            <div
-                              key={member.id}
-                              className="bg-white/20 backdrop-blur-lg rounded-lg p-4 shadow-md flex flex-col gap-3"
+                    {row.proposal_url != null ? (
+                      <TooltipProvider delayDuration={100}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              type="button"
+                              size={"sm"}
+                              className="bg-white/10 border border-white/20 text-white hover:bg-white/20 hover:text-white"
+                              onClick={() =>
+                                window.open(row.proposal_url, "_blank")
+                              }
                             >
-                              {/* Nama & Role */}
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-semibold text-lg ">
-                                  {member.name}
-                                </h3>
-                                <span
-                                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                    member.isLeader
-                                      ? "bg-black text-white"
-                                      : "bg-gray-700 text-gray-200"
-                                  }`}
-                                >
-                                  {member.isLeader ? "Team Leader" : "Member"}
-                                </span>
-                              </div>
-
-                              {/* Documents Status */}
-                              <div className="flex items-center justify-between bg-white/10 rounded-md px-4 py-2">
-                                <span className="text-sm font-medium">
-                                  Documents
-                                </span>
-                                <Badge
-                                  className={`rounded-full px-3 py-1 ${
-                                    member.memberApproval === "Accepted"
-                                      ? "bg-green-600 text-white"
-                                      : member.memberApproval === "Rejected"
-                                      ? "bg-red-600 text-white"
-                                      : "bg-yellow-600 text-white"
-                                  }`}
-                                >
-                                  {member.memberApproval === "Accepted"
-                                    ? "All Completed"
-                                    : member.memberApproval === "Rejected"
-                                    ? "Rejected"
-                                    : "Pending"}
-                                </Badge>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                              View Proposal
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="bottom"
+                            className="max-w-xs text-sm"
+                          >
+                            <p>{row.proposal_url}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <p className="text-xs text-white/70">Not Submitted Yet</p>
+                    )}
                   </TableCell>
 
                   <TableCell className="py-4 px-6">
